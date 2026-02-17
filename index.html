@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Citadel: Armory & Justice</title>
+    <title>Citadel: RPG Chat</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -22,10 +22,10 @@
         .avatar { width: 50px; height: 50px; border: 2px solid var(--gold); border-radius: 50%; margin: 0 auto 10px; overflow: hidden; background: #000; cursor: pointer; }
         .avatar img { width: 100%; height: 100%; object-fit: cover; }
         
-        .channels { flex: 1; padding: 10px; }
-        .chan { padding: 10px; margin: 2px 0; border-radius: 4px; cursor: pointer; color: #8e9297; display: flex; align-items: center; }
-        .chan:hover, .chan.active { background: #393c43; color: #fff; }
-        .chan::before { content: '#'; margin-right: 8px; color: var(--gold); }
+        .tabs { flex: 1; padding: 10px; }
+        .tab-link { padding: 12px; margin: 5px 0; border-radius: 4px; cursor: pointer; color: #8e9297; display: flex; align-items: center; transition: 0.2s; }
+        .tab-link:hover, .tab-link.active { background: #393c43; color: #fff; }
+        .tab-link::before { content: '>'; margin-right: 10px; color: var(--gold); }
 
         /* --- MAIN --- */
         .main { flex: 1; display: flex; flex-direction: column; background: var(--bg-chat); }
@@ -33,23 +33,22 @@
         .content { flex: 1; overflow-y: auto; padding: 20px; display: none; }
         .content.active { display: block; }
 
-        /* --- CHAT --- */
-        #chatBox { height: calc(100% - 60px); overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .msg { border-left: 2px solid var(--gold); padding-left: 8px; margin-bottom: 5px; }
+        /* --- CHAT ÚNICO --- */
+        #chatContainer { display: flex; flex-direction: column; height: 100%; }
+        #chatBox { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; padding-right: 5px; }
+        .msg { border-left: 2px solid var(--gold); padding-left: 8px; margin-bottom: 5px; animation: slide 0.2s ease-out; }
         .msg b { font-size: 6px; display: block; margin-bottom: 3px; color: var(--gold); }
+        @keyframes slide { from { opacity: 0; transform: translateX(-5px); } to { opacity: 1; transform: translateX(0); } }
 
-        .input-box { background: #40444b; border-radius: 5px; display: flex; padding: 10px; margin-top: 10px; }
+        .input-box { background: #40444b; border-radius: 5px; display: flex; padding: 12px; }
         input { flex: 1; background: transparent; border: none; color: #fff; font-family: 'Press Start 2P'; font-size: 8px; outline: none; }
 
         /* --- UI ELEMENTS --- */
-        .bar { background: #000; height: 10px; border-radius: 5px; margin: 5px 0; overflow: hidden; position: relative; }
-        .bar-fill { height: 100%; transition: 0.5s; }
-        .card { background: #18191c; border: 1px solid var(--border); padding: 10px; margin-bottom: 10px; border-radius: 4px; }
-        .btn { background: var(--gold); color: #000; border: none; padding: 8px; cursor: pointer; font-family: 'Press Start 2P'; font-size: 6px; width: 100%; margin-top: 5px; }
-        .btn:disabled { background: #555; cursor: not-allowed; }
-        
-        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #333; }
-        .price { color: var(--gold); }
+        .bar { background: #000; height: 10px; border-radius: 5px; margin: 5px 0; overflow: hidden; }
+        .bar-fill { height: 100%; transition: 0.5s; width: 100%; }
+        .card { background: #18191c; border: 1px solid var(--border); padding: 12px; margin-bottom: 10px; border-radius: 4px; }
+        .btn { background: var(--gold); color: #000; border: none; padding: 10px; cursor: pointer; font-family: 'Press Start 2P'; font-size: 6px; width: 100%; margin-top: 5px; }
+        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #333; }
     </style>
 </head>
 <body>
@@ -60,83 +59,95 @@
             <input type="file" id="fileIn" style="display:none" accept="image/*">
             <input type="text" id="userName" style="width:100%; text-align:center; background:none; border:none; color:var(--gold); font-size:6px;" onchange="save()">
             
-            <div class="bar"><div id="hpBar" class="bar-fill" style="background:var(--hp); width:100%;"></div></div>
-            <div style="font-size:5px; margin-bottom:10px;">HP: <span id="hpVal">100</span>/100</div>
-            
-            <div class="bar"><div id="xpBar" class="bar-fill" style="background:var(--xp); width:0%;"></div></div>
-            <div style="font-size:5px;">ORO: <span id="goldSpan">0</span>g</div>
-            <div id="weaponEquipped" style="font-size:5px; color:var(--gold); margin-top:5px;">SIN ARMA</div>
+            <div class="bar"><div id="hpBar" class="bar-fill" style="background:var(--hp);"></div></div>
+            <div style="font-size:5px;">HP: <span id="hpVal">100</span> | ORO: <span id="goldSpan">0</span></div>
+            <div id="weaponEquipped" style="font-size:5px; color:var(--gold); margin-top:8px;">PUÑOS</div>
         </div>
-        <div class="channels">
-            <div class="chan active" onclick="setView('chat')">general</div>
-            <div class="chan" onclick="setView('missions')">gestas-y-recompensas</div>
-            <div class="chan" onclick="setView('inventory')">armeria-y-tienda</div>
-            <div class="chan" onclick="setView('notes')">pergaminos-notas</div>
+        <div class="tabs">
+            <div class="tab-link active" onclick="setView('chat')">CHAT</div>
+            <div class="tab-link" onclick="setView('missions')">MISIONES</div>
+            <div class="tab-link" onclick="setView('inventory')">ARMERÍA</div>
+            <div class="tab-link" onclick="setView('notes')">NOTAS</div>
             
-            <div style="margin-top:20px; font-size:5px; color:#555;">SALA ID:</div>
-            <div id="myId" onclick="copyId()" style="font-size:5px; background:#000; padding:5px; cursor:pointer; word-break:break-all;">...</div>
+            <div style="margin-top:20px; font-size:5px; color:#555; padding-left:10px;">ID SALA:</div>
+            <div id="myId" onclick="copyId()" style="font-size:5px; background:#000; padding:10px; cursor:pointer; word-break:break-all; margin:5px 10px; border:1px dashed #444;">...</div>
+            <input type="text" id="joinId" placeholder="ID Amigo..." style="background:#000; font-size:5px; margin:0 10px; padding:8px; width:calc(100% - 20px); box-sizing:border-box; color:#fff; border:1px solid #333;">
+            <button onclick="joinRoom()" class="btn" style="margin:10px; width:calc(100% - 20px);">CONECTAR</button>
         </div>
     </div>
 
     <div class="main">
-        <div class="header" id="headerTitle"># general</div>
+        <div class="header" id="headerTitle">SALA DE CHAT</div>
         
         <div id="view-chat" class="content active">
-            <div id="chatBox"></div>
-            <div class="input-box"><input type="text" id="msgIn" placeholder="Escribir mensaje..." onkeydown="if(event.key==='Enter') sendMsg()"></div>
+            <div id="chatContainer">
+                <div id="chatBox"></div>
+                <div class="input-box">
+                    <input type="text" id="msgIn" placeholder="Escribe y presiona Enter..." onkeydown="if(event.key==='Enter') sendMsg()">
+                </div>
+            </div>
         </div>
 
         <div id="view-missions" class="content">
             <div class="card">
-                <p style="color:var(--gold);">NUEVA GESTA</p>
-                <input type="text" id="mIn" placeholder="¿Qué vas a lograr?">
+                <input type="text" id="mIn" placeholder="Nueva gesta (24h)...">
                 <button class="btn" onclick="addMission()">FIJAR MISIÓN</button>
-                <p style="font-size:5px; color:#777; margin-top:5px;">RECOMPENSA: 20g | 30XP</p>
             </div>
             <div id="mList"></div>
         </div>
 
         <div id="view-inventory" class="content">
-            <h2 style="color:var(--gold); font-size:8px;">ARMERÍA DEL REINO</h2>
-            <div class="card" id="shopItems">
-                </div>
-            <h2 style="color:var(--gold); font-size:8px; margin-top:20px;">TUS PERTENENCIAS</h2>
+            <h2 style="color:var(--gold); font-size:8px;">TIENDA DE ARMAS</h2>
+            <div class="card" id="shopItems"></div>
+            <h2 style="color:var(--gold); font-size:8px; margin-top:20px;">INVENTARIO</h2>
             <div id="myItemsList"></div>
         </div>
 
         <div id="view-notes" class="content">
-            <input type="text" id="noteIn" placeholder="Nota rápida...">
-            <button class="btn" onclick="addNote()">GUARDAR PERGAMINO</button>
+            <input type="text" id="noteIn" placeholder="Escribir nota...">
+            <button class="btn" onclick="addNote()">GUARDAR</button>
             <div id="noteList" style="margin-top:15px;"></div>
         </div>
     </div>
 
 <script>
-    let state = JSON.parse(localStorage.getItem('citadel_rpg_v3')) || { 
-        name: "Héroe", gold: 0, xp: 0, hp: 100, missions: [], notes: [], photo: null, items: [], weapon: "Puños"
+    let state = JSON.parse(localStorage.getItem('citadel_rpg_final')) || { 
+        name: "Héroe", gold: 0, hp: 100, missions: [], notes: [], photo: null, weapon: "PUÑOS"
     };
 
     const shop = [
-        { name: "Daga de Hierro", price: 50, power: 5 },
-        { name: "Espada Larga", price: 150, power: 15 },
-        { name: "Hacha de Guerra", price: 300, power: 30 },
-        { name: "Excalibur JS", price: 1000, power: 100 }
+        { name: "Daga", price: 30 }, { name: "Espada", price: 100 }, 
+        { name: "Hacha", price: 250 }, { name: "Martillo", price: 500 }
     ];
 
     let peer, connections = {};
 
     function setView(view) {
-        document.querySelectorAll('.content, .chan').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.content, .tab-link').forEach(el => el.classList.remove('active'));
         document.getElementById('view-' + view).classList.add('active');
-        document.getElementById('headerTitle').innerText = '# ' + view;
-        const chans = document.querySelectorAll('.chan');
-        if(view==='chat') chans[0].classList.add('active');
-        if(view==='missions') chans[1].classList.add('active');
-        if(view==='inventory') chans[2].classList.add('active');
-        if(view==='notes') chans[3].classList.add('active');
+        document.getElementById('headerTitle').innerText = view.toUpperCase();
+        const tabs = document.querySelectorAll('.tab-link');
+        if(view==='chat') tabs[0].classList.add('active');
+        if(view==='missions') tabs[1].classList.add('active');
+        if(view==='inventory') tabs[2].classList.add('active');
+        if(view==='notes') tabs[3].classList.add('active');
     }
 
-    // --- LÓGICA DE JUEGO & PENALIZACIÓN ---
+    // --- SISTEMA DE PENALIZACIÓN Y MISIONES ---
+    function checkPenalties() {
+        let changed = false;
+        state.missions.forEach(m => {
+            if(!m.done && !m.penalized && (Date.now() - m.created > 86400000)) {
+                state.hp = Math.max(0, state.hp - 20);
+                state.gold = Math.max(0, state.gold - 10);
+                m.penalized = true;
+                changed = true;
+                addMsg("SISTEMA", "¡Fallo! Has perdido HP por incumplimiento.");
+            }
+        });
+        if(changed) save();
+    }
+
     function addMission() {
         const t = document.getElementById('mIn').value;
         if(t) { 
@@ -145,83 +156,56 @@
         }
     }
 
-    function checkPenalties() {
-        let changed = false;
-        const ahora = Date.now();
-        state.missions.forEach(m => {
-            if(!m.done && !m.penalized && (ahora - m.created > 86400000)) {
-                state.hp = Math.max(0, state.hp - 20);
-                state.gold = Math.max(0, state.gold - 10);
-                m.penalized = true;
-                changed = true;
-                addMsg("SISTEMA", `⚠️ PENALIZACIÓN: La misión "${m.text}" ha expirado. Pierdes 20HP y 10g.`);
-            }
-        });
-        if(changed) save();
+    function completeM(id) {
+        const m = state.missions.find(x => x.id === id);
+        m.done = true; state.gold += 25; save();
     }
 
-    function buyItem(index) {
-        const item = shop[index];
+    // --- ARMERÍA ---
+    function buyItem(i) {
+        const item = shop[i];
         if(state.gold >= item.price) {
             state.gold -= item.price;
-            state.items.push(item.name);
             state.weapon = item.name;
             save();
-            addMsg("SISTEMA", `Has comprado: ${item.name}`);
-        } else {
-            alert("No tienes suficiente oro.");
+            addMsg("SISTEMA", "Has equipado: " + item.name);
         }
     }
 
+    // --- PERSISTENCIA ---
     function save() {
         state.name = document.getElementById('userName').value || state.name;
-        localStorage.setItem('citadel_rpg_v3', JSON.stringify(state));
+        localStorage.setItem('citadel_rpg_final', JSON.stringify(state));
         updateUI();
     }
 
     function updateUI() {
         document.getElementById('hpBar').style.width = state.hp + "%";
         document.getElementById('hpVal').innerText = state.hp;
-        document.getElementById('xpBar').style.width = (state.xp % 100) + "%";
         document.getElementById('goldSpan').innerText = state.gold;
         document.getElementById('userName').value = state.name;
         document.getElementById('weaponEquipped').innerText = "⚔️ " + state.weapon;
         if(state.photo) document.getElementById('profileImg').src = state.photo;
 
-        // Render Tienda
-        const shopDiv = document.getElementById('shopItems');
-        shopDiv.innerHTML = "";
-        shop.forEach((item, i) => {
-            shopDiv.innerHTML += `
-                <div class="item-row">
-                    <span>${item.name}</span>
-                    <span class="price">${item.price}g</span>
-                    <button class="btn" style="width:50px;" onclick="buyItem(${i})" ${state.gold < item.price ? 'disabled' : ''}>COMPRAR</button>
-                </div>`;
+        const shopDiv = document.getElementById('shopItems'); shopDiv.innerHTML = "";
+        shop.forEach((it, i) => {
+            shopDiv.innerHTML += `<div class="item-row"><span>${it.name}</span> <span style="color:var(--gold)">${it.price}g</span> <button class="btn" style="width:60px; margin:0;" onclick="buyItem(${i})" ${state.gold<it.price?'disabled':''}>COMPRAR</button></div>`;
         });
 
-        // Render Misiones
         const ml = document.getElementById('mList'); ml.innerHTML = "";
         state.missions.forEach(m => {
             const h = Math.max(0, Math.floor((86400000 - (Date.now() - m.created)) / 3600000));
             ml.innerHTML += `<div class="card" style="border-left:3px solid ${m.done?'#2ecc71':(m.penalized?'#f04747':var(--gold))}">
-                <p>${m.text}</p>
-                <p style="font-size:5px; color:#777;">${m.done ? 'COMPLETADA' : (m.penalized ? 'FALLIDA (TIEMPO AGOTADO)' : h+'h restantes')}</p>
-                ${(!m.done && !m.penalized) ? `<button class="btn" onclick="completeM(${m.id})">LOGRAR (+20g)</button>` : ''}
-                <span onclick="state.missions=state.missions.filter(x=>x.id!==${m.id});save();" style="font-size:5px; cursor:pointer; color:#444;">[ELIMINAR]</span>
+                <p>${m.text}</p><p style="font-size:5px; color:#666;">${m.done?'LOGRADA':(m.penalized?'FALLIDA':h+'h restantes')}</p>
+                ${(!m.done && !m.penalized)?`<button class="btn" onclick="completeM(${m.id})">COMPLETAR (+25g)</button>`:''}
+                <span onclick="state.missions=state.missions.filter(x=>x.id!==${m.id});save();" style="font-size:5px; color:red; cursor:pointer;">[X] ELIMINAR</span>
             </div>`;
         });
 
-        // Render Notas
         const nl = document.getElementById('noteList'); nl.innerHTML = "";
         state.notes.forEach(n => {
-            nl.innerHTML += `<div class="card" style="font-size:7px;">• ${n.text} <span onclick="state.notes=state.notes.filter(x=>x.id!==${n.id});save();" style="float:right; color:red;">X</span></div>`;
+            nl.innerHTML += `<div class="card" style="font-size:7px;">• ${n.text} <span onclick="state.notes=state.notes.filter(x=>x.id!==${n.id});save();" style="float:right; color:red; cursor:pointer;">X</span></div>`;
         });
-    }
-
-    function completeM(id) {
-        const m = state.missions.find(x => x.id === id);
-        m.done = true; state.gold += 20; state.xp += 30; save();
     }
 
     function addNote() {
@@ -239,6 +223,11 @@
         });
     }
 
+    function joinRoom() {
+        const id = document.getElementById('joinId').value.trim();
+        if(id) { const c = peer.connect(id); c.on('open', () => { connections[c.peer] = c; addMsg("SISTEMA", "¡Conectado!"); }); }
+    }
+
     function sendMsg() {
         const i = document.getElementById('msgIn');
         if(!i.value.trim()) return;
@@ -253,10 +242,10 @@
         box.scrollTop = box.scrollHeight;
     }
 
-    function copyId() { navigator.clipboard.writeText(document.getElementById('myId').innerText); alert("ID de Sala copiado"); }
+    function copyId() { navigator.clipboard.writeText(document.getElementById('myId').innerText); alert("ID Copiado"); }
     document.getElementById('fileIn').onchange = e => { const r = new FileReader(); r.onload = ev => { state.photo = ev.target.result; save(); }; r.readAsDataURL(e.target.files[0]); };
 
-    setInterval(checkPenalties, 60000); // Revisar cada minuto
+    setInterval(checkPenalties, 60000);
     initP2P();
     updateUI();
 </script>
