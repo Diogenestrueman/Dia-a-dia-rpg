@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Citadel RPG | Nexus Dual</title>
+    <title>Citadel RPG | Nexus Fixed</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
@@ -11,31 +11,38 @@
         * { box-sizing: border-box; touch-action: manipulation; }
         body { background: var(--bg); color: #e0e0e0; font-family: 'Press Start 2P', cursive; margin: 0; font-size: 8px; display: flex; height: 100vh; flex-direction: column; overflow: hidden; }
         
-        /* HEADER STATS */
-        .header-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #000; padding: 15px; border-bottom: 2px solid var(--gold); }
-        .bar-bg { background: #333; height: 8px; width: 100%; border-radius: 4px; overflow: hidden; border: 1px solid #444; margin-top: 4px; }
-        .bar-hp { height: 100%; background: var(--hp); transition: 0.5s; width: 100%; }
-        .bar-xp { height: 100%; background: var(--xp); transition: 0.5s; width: 0%; }
+        /* HEADER */
+        .header-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #000; padding: 12px; border-bottom: 2px solid var(--gold); z-index: 10; }
+        .bar-bg { background: #333; height: 6px; width: 100%; border-radius: 3px; overflow: hidden; margin-top: 4px; border: 1px solid #444; }
+        .bar-hp { height: 100%; background: var(--hp); width: 100%; transition: 0.5s; }
+        .bar-xp { height: 100%; background: var(--xp); width: 0%; transition: 0.5s; }
 
         /* TABS */
         .tabs { display: flex; background: #111; border-bottom: 1px solid #333; }
-        .tab-btn { flex: 1; padding: 15px 2px; cursor: pointer; border: none; background: none; color: #555; font-family: 'Press Start 2P'; font-size: 6px; }
+        .tab-btn { flex: 1; padding: 12px 2px; cursor: pointer; border: none; background: none; color: #555; font-family: 'Press Start 2P'; font-size: 6px; }
         .tab-btn.active { color: var(--gold); background: var(--panel); border-bottom: 2px solid var(--gold); }
 
-        .view { display: none; flex: 1; padding: 20px; overflow-y: auto; }
+        /* VIEWS */
+        .view { display: none; flex: 1; padding: 15px; overflow-y: auto; }
         .view.active { display: flex; flex-direction: column; }
 
-        /* CHAT UI */
-        #chatBox { flex: 1; overflow-y: auto; background: rgba(0,0,0,0.5); border: 1px solid #333; padding: 10px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; border-radius: 4px; }
-        .msg { border-left: 2px solid var(--gold); padding: 5px 8px; background: rgba(255,255,255,0.05); }
-        .chat-controls { display: flex; gap: 5px; margin-bottom: 10px; }
-        .btn-send { width: auto; padding: 0 15px; margin-top: 0; }
+        /* CHAT MEJORADO */
+        #chatBox { flex: 1; overflow-y: auto; background: rgba(0,0,0,0.6); border: 1px solid #333; padding: 10px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 6px; border-radius: 4px; }
+        .msg { border-left: 2px solid var(--gold); padding: 4px 8px; background: rgba(255,255,255,0.03); font-size: 7px; line-height: 1.4; }
+        
+        .chat-input-row { display: flex; gap: 8px; margin-bottom: 10px; height: 45px; }
+        #msgIn { flex: 1; background: #000; border: 1px solid #444; color: #fff; padding: 0 10px; font-family: 'Press Start 2P'; font-size: 8px; border-radius: 4px; }
+        .btn-send { width: 50px; background: var(--gold); color: #000; border: none; font-family: 'Press Start 2P'; font-weight: bold; cursor: pointer; border-radius: 4px; border-bottom: 3px solid #8a6d20; display: flex; align-items: center; justify-content: center; }
 
-        /* INPUTS & BUTTONS */
-        .card { background: #222; border: 1px solid #444; padding: 15px; margin-bottom: 15px; border-radius: 4px; }
-        button { background: var(--gold); color: #000; border: none; padding: 12px; cursor: pointer; font-family: 'Press Start 2P'; font-size: 7px; width: 100%; margin-top: 5px; border-bottom: 4px solid #8a6d20; outline: none; }
-        button:active { border-bottom: 0; transform: translateY(4px); }
-        input { background: #000; border: 1px solid #444; color: #fff; padding: 12px; width: 100%; font-family: 'Press Start 2P'; font-size: 7px; margin-bottom: 10px; outline: none; }
+        /* VINCULACIÓN */
+        .peer-info { font-size: 5px; color: #666; margin-bottom: 5px; }
+        .connect-row { display: flex; gap: 5px; }
+        .connect-row input { flex: 1; background: #000; border: 1px solid #333; color: #fff; padding: 10px; font-size: 6px; font-family: 'Press Start 2P'; }
+        .btn-link { width: auto; padding: 0 10px; background: #333; color: #fff; border: 1px solid #444; font-size: 6px; cursor: pointer; }
+
+        /* OTROS */
+        .card { background: #222; border: 1px solid #444; padding: 12px; margin-bottom: 10px; border-radius: 4px; }
+        .buy-btn { background: var(--gold); color: #000; border: none; padding: 8px; width: 100%; margin-top: 5px; font-family: 'Press Start 2P'; font-size: 6px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -57,49 +64,43 @@
 <div id="view-chat" class="view active">
     <div id="chatBox"></div>
     
-    <div class="chat-controls">
-        <input type="text" id="msgIn" placeholder="Mensaje..." onkeydown="if(event.key==='Enter') sendMsg()">
-        <button class="btn-send" onclick="sendMsg()">></button>
+    <div class="chat-input-row">
+        <input type="text" id="msgIn" placeholder="Mensaje..." autocomplete="off">
+        <button class="btn-send" id="sendBtn">></button>
     </div>
 
-    <div style="font-size:5px; color:#555; margin-bottom: 5px;">ID: <span id="myId" style="color:var(--gold); user-select:all;">Generando...</span></div>
-    <div style="display:flex; gap:5px;">
-        <input type="text" id="peerId" placeholder="ID Aliado..." style="margin-bottom:0;">
-        <button style="width:auto; margin-top:0;" onclick="connectPeer()">VINCULAR</button>
+    <div class="peer-info">TU ID: <span id="myId" style="color:var(--gold); user-select:all">Cargando...</span></div>
+    <div class="connect-row">
+        <input type="text" id="peerId" placeholder="ID Aliado...">
+        <button class="btn-link" onclick="manualConnect()">VINCULAR</button>
     </div>
-    <div id="status-p2p" style="font-size:5px; color:#777; margin-top:5px;">Estado: Desconectado</div>
+    <div id="status-p2p" style="font-size:5px; color:#555; margin-top:4px;">Estado: Desconectado</div>
 </div>
 
 <div id="view-misiones" class="view">
-    <input type="text" id="mIn" placeholder="Nueva misión...">
-    <button onclick="addMission()">REGISTRAR GESTA</button>
-    <div id="mList" style="margin-top:20px"></div>
+    <input type="text" id="mIn" placeholder="Nueva gesta..." style="background:#000; border:1px solid #444; color:#fff; padding:10px; font-family:'Press Start 2P'; font-size:7px; width:100%;">
+    <button class="buy-btn" onclick="addM()" style="margin:10px 0; font-size:8px; padding:12px;">REGISTRAR</button>
+    <div id="mList"></div>
 </div>
 
 <div id="view-tienda" class="view">
-    <div class="card">DAGA OXIDADA | 40g <button onclick="buy('Daga Oxidada', 40)">COMPRAR</button></div>
-    <div class="card">ESPADA ACERO | 150g <button onclick="buy('Espada Acero', 150)">COMPRAR</button></div>
+    <div class="card">DAGA ACERO | 40g <button class="buy-btn" onclick="buy('Daga Acero', 40)">COMPRAR</button></div>
+    <div class="card">ESPADA REAL | 150g <button class="buy-btn" onclick="buy('Espada Real', 150)">COMPRAR</button></div>
 </div>
 
 <div id="view-notas" class="view">
-    <input type="text" id="nIn" placeholder="Escribir nota...">
-    <button onclick="addNote()">GUARDAR</button>
-    <div id="nList" style="margin-top:20px"></div>
+    <input type="text" id="nIn" placeholder="Escribir nota..." style="background:#000; border:1px solid #444; color:#fff; padding:10px; font-family:'Press Start 2P'; font-size:7px; width:100%;">
+    <button class="buy-btn" onclick="addN()" style="margin:10px 0; font-size:8px; padding:12px;">GUARDAR</button>
+    <div id="nList"></div>
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('citadel_v11')) || {
+    // --- LÓGICA DE JUEGO ---
+    let db = JSON.parse(localStorage.getItem('citadel_v12')) || {
         hp: 100, gold: 0, xp: 0, lvl: 1, wpn: "PUÑOS", missions: [], notes: []
     };
 
-    function save() { localStorage.setItem('citadel_v11', JSON.stringify(db)); render(); }
-
-    function switchTab(viewId, btn) {
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('view-' + viewId).classList.add('active');
-        btn.classList.add('active');
-    }
+    function save() { localStorage.setItem('citadel_v12', JSON.stringify(db)); render(); }
 
     function render() {
         document.getElementById('hpFill').style.width = db.hp + "%";
@@ -110,9 +111,9 @@
 
         const ml = document.getElementById('mList'); ml.innerHTML = "";
         db.missions.forEach((m, i) => {
-            ml.innerHTML += `<div class="card" style="border-left:4px solid ${m.done ? '#2ecc71' : '#d4af37'}">
-                <div>${m.text}</div>
-                ${!m.done ? `<button onclick="completeM(${i})">CONCLUIR</button>` : ''}
+            ml.innerHTML += `<div class="card">
+                <p style="margin:0 0 10px 0;">${m.text}</p>
+                ${!m.done ? `<button class="buy-btn" onclick="doneM(${i})">CONCLUIR (+30g)</button>` : '<span style="color:#2ecc71">LOGRADA</span>'}
             </div>`;
         });
 
@@ -122,49 +123,55 @@
         });
     }
 
-    function addMission() { const i = document.getElementById('mIn'); if(i.value){ db.missions.push({text:i.value, done:false}); i.value=""; save(); } }
-    function completeM(idx) { db.missions[idx].done = true; db.gold += 30; db.xp += 25; save(); }
-    function addNote() { const i = document.getElementById('nIn'); if(i.value){ db.notes.push(i.value); i.value=""; save(); } }
+    function addM() { const i = document.getElementById('mIn'); if(i.value){ db.missions.push({text:i.value, done:false}); i.value=""; save(); } }
+    function doneM(idx) { db.missions[idx].done = true; db.gold += 30; db.xp = Math.min(100, db.xp + 25); save(); }
+    function addN() { const i = document.getElementById('nIn'); if(i.value){ db.notes.push(i.value); i.value=""; save(); } }
     function delN(idx) { db.notes.splice(idx, 1); save(); }
     function buy(n, p) { if(db.gold >= p){ db.gold -= p; db.wpn = n; save(); } else { alert("Oro insuficiente"); } }
 
-    // --- LÓGICA DE RED DUAL (P2P) ---
+    function switchTab(id, btn) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('view-' + id).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    // --- LÓGICA DE RED (P2P FORZADO) ---
     let peer, conn;
     const statusEl = document.getElementById('status-p2p');
 
     function initPeer() {
-        peer = new Peer({ config: {'iceServers': [{ url: 'stun:stun.l.google.com:19302' }]} });
+        peer = new Peer({ config: { 'iceServers': [{ url: 'stun:stun.l.google.com:19302' }] } });
         
         peer.on('open', id => {
             document.getElementById('myId').innerText = id;
-            statusEl.innerText = "Estado: Listo para conectar";
+            statusEl.innerText = "Estado: Esperando conexión...";
         });
 
-        // Cuando ALGUIEN se conecta a TI
+        // RECEPTOR: Cuando alguien te vincula
         peer.on('connection', c => {
+            if (conn) conn.close(); 
             conn = c;
-            setupConn();
-            addMsg("SISTEMA", "¡Aliado detectado!");
+            bindEvents();
         });
 
-        peer.on('error', e => { statusEl.innerText = "Error: " + e.type; });
+        peer.on('error', err => { statusEl.innerText = "Error: " + err.type; });
     }
 
-    function connectPeer() {
+    function manualConnect() {
         const id = document.getElementById('peerId').value.trim();
         if(id) {
             statusEl.innerText = "Vinculando...";
-            // Al conectar, guardamos la conexión
-            conn = peer.connect(id);
-            setupConn();
+            if (conn) conn.close();
+            conn = peer.connect(id, { reliable: true });
+            bindEvents();
         }
     }
 
-    function setupConn() {
-        // Importante: escuchar eventos de la conexión actual
+    function bindEvents() {
         conn.on('open', () => {
-            statusEl.innerText = "Estado: ¡Sincronizado!";
-            addMsg("SISTEMA", "Vínculo de alma establecido.");
+            statusEl.innerText = "Estado: ¡VINCULADO!";
+            addMsg("SISTEMA", "¡Conexión establecida!");
         });
 
         conn.on('data', data => {
@@ -173,27 +180,35 @@
 
         conn.on('close', () => {
             statusEl.innerText = "Estado: Desconectado";
-            addMsg("SISTEMA", "Conexión perdida.");
+            addMsg("SISTEMA", "Conexión cerrada.");
         });
     }
 
-    function sendMsg() {
-        const i = document.getElementById('msgIn');
-        if(conn && conn.open && i.value.trim()) {
-            conn.send(i.value);
-            addMsg("TÚ", i.value);
-            i.value = "";
-            i.focus();
-        } else {
-            alert("No hay conexión activa.");
+    function sendMessage() {
+        const input = document.getElementById('msgIn');
+        if (conn && conn.open && input.value.trim()) {
+            const val = input.value;
+            conn.send(val);
+            addMsg("TÚ", val);
+            input.value = "";
+            input.focus();
+        } else if (!conn || !conn.open) {
+            alert("No hay conexión activa. Vincula un ID primero.");
         }
     }
 
     function addMsg(u, m) {
         const b = document.getElementById('chatBox');
-        b.innerHTML += `<div class="msg"><b>${u}:</b> ${m}</div>`;
+        const div = document.createElement('div');
+        div.className = 'msg';
+        div.innerHTML = `<b>${u}:</b> ${m}`;
+        b.appendChild(div);
         b.scrollTop = b.scrollHeight;
     }
+
+    // Eventos de botones
+    document.getElementById('sendBtn').onclick = sendMessage;
+    document.getElementById('msgIn').onkeydown = (e) => { if(e.key === 'Enter') sendMessage(); };
 
     initPeer();
     render();
