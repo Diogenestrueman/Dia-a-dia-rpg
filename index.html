@@ -3,151 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Citadel RPG | Nexus v29</title>
+    <title>Citadel RPG v30</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
-        :root { --bg: #0d0d0d; --gold: #d4af37; --hp: #ff4d4d; --xp: #00aff4; }
+        :root { --bg: #0d0d0d; --gold: #d4af37; --hp: #ff4d4d; }
         * { box-sizing: border-box; touch-action: manipulation; margin: 0; padding: 0; }
-        html, body { height: 100%; overflow: hidden; background: var(--bg); color: #e0e0e0; font-family: 'Press Start 2P', cursive; }
-        .app-container { height: 100%; display: flex; flex-direction: column; }
-        .stats-bar { flex-shrink: 0; background: #000; padding: 10px; border-bottom: 2px solid var(--gold); display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 6px; }
-        .bar { background: #333; height: 6px; width: 100%; border-radius: 3px; margin-top: 4px; overflow: hidden; }
-        .hp-fill { background: var(--hp); height: 100%; width: 100%; }
-        .xp-fill { background: var(--xp); height: 100%; width: 0%; }
-        .nav { flex-shrink: 0; display: flex; background: #111; }
-        .nav-btn { flex: 1; padding: 15px 0; border: none; background: none; color: #555; font-family: 'Press Start 2P'; font-size: 6px; cursor: pointer; }
-        .nav-btn.active { color: var(--gold); border-bottom: 2px solid var(--gold); background: #1a1a1a; }
-        .content { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; }
-        .view { display: none; padding: 15px; flex-direction: column; height: 100%; }
-        .view.active { display: flex; }
-        .net-info { font-size: 5px; background: #000; padding: 8px; border-radius: 4px; border: 1px solid #222; margin-bottom: 10px; }
-        #chatBox { flex-grow: 1; background: rgba(0,0,0,0.4); border: 1px solid #222; padding: 10px; overflow-y: auto; font-size: 7px; display: flex; flex-direction: column; gap: 8px; border-radius: 4px; }
-        .msg { border-left: 2px solid var(--gold); padding: 5px; background: rgba(255,255,255,0.02); line-height: 1.4; }
-        .chat-footer { flex-shrink: 0; padding: 10px; background: #000; display: flex; gap: 8px; border-top: 1px solid #333; }
-        #msgIn { flex: 1; background: #111; border: 1px solid #444; color: #fff; padding: 12px; font-family: 'Press Start 2P'; font-size: 8px; border-radius: 4px; outline: none; }
-        .btn-send { width: 50px; background: var(--gold); border: none; border-radius: 4px; font-size: 14px; cursor: pointer; }
+        body { background: var(--bg); color: #eee; font-family: 'Press Start 2P', cursive; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* HEADER */
+        .header { padding: 10px; border-bottom: 2px solid var(--gold); font-size: 7px; background: #000; }
+        .net-box { background: #1a1a1a; padding: 10px; margin-top: 5px; border-radius: 4px; }
+        
+        /* CHAT AREA */
+        #chat { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; font-size: 8px; background: rgba(0,0,0,0.3); }
+        .m { padding: 5px; border-left: 2px solid var(--gold); background: rgba(255,255,255,0.05); word-break: break-all; }
+        
+        /* INPUT AREA */
+        .footer { padding: 10px; background: #000; display: flex; gap: 5px; border-top: 1px solid #333; }
+        input { background: #111; border: 1px solid #444; color: #fff; padding: 12px; font-family: 'Press Start 2P'; font-size: 9px; flex: 1; border-radius: 4px; }
+        button { background: var(--gold); border: none; padding: 0 15px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+
+        /* PANTALLA DE CARGA / ERROR */
+        #status { font-size: 6px; color: #888; margin-top: 5px; }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <div class="stats-bar">
-        <div>HP <div class="bar"><div id="hpF" class="hp-fill"></div></div></div>
-        <div>XP (LV <span id="lvV">1</span>) <div class="bar"><div id="xpF" class="xp-fill"></div></div></div>
-        <div style="color:var(--gold); margin-top:5px;">ORO: <span id="gV">0</span> | <span id="wV">PUÑOS</span></div>
-    </div>
-
-    <nav class="nav">
-        <button class="nav-btn active" onclick="showV('chat', this)">CHAT</button>
-        <button class="nav-btn" onclick="showV('forja', this)">FORJA</button>
-        <button class="nav-btn" onclick="showV('gesta', this)">GESTA</button>
-        <button class="nav-btn" onclick="showV('notas', this)">NOTAS</button>
-    </nav>
-
-    <main class="content">
-        <div id="v-chat" class="view active">
-            <div class="net-info">
-                <div id="myId" onclick="copyId()" style="color:var(--gold); cursor:pointer;">CARGANDO ID...</div>
-                <div style="display:flex; gap:5px; margin-top:8px;">
-                    <input type="text" id="pId" placeholder="ID ALIADO" style="background:#000; color:#fff; border:1px solid #444; padding:8px; flex:1; font-family:'Press Start 2P'; font-size:6px;">
-                    <button onclick="conectar()" style="background:var(--gold); border:none; padding:0 10px; font-family:'Press Start 2P'; font-size:6px;">VINCULAR</button>
-                </div>
-                <div id="status" style="font-size:5px; color:#555; margin-top:5px;">Estado: Desconectado</div>
-            </div>
-            <div id="chatBox"></div>
+<div class="header">
+    HP: 100/100 | ORO: <span id="gV">20</span>
+    <div class="net-box">
+        <div id="myId" style="color:var(--gold); margin-bottom:5px;">ID: CARGANDO...</div>
+        <div style="display:flex; gap:5px;">
+            <input type="text" id="pId" placeholder="ID AMIGO" style="padding:5px; font-size:7px;">
+            <button onclick="conectar()" style="font-size:7px;">LINK</button>
         </div>
-        <div id="v-forja" class="view"><input type="text" id="wIn" placeholder="Nombre..."><button class="act-btn" onclick="craft()">FORJAR (10g)</button><div id="wList"></div></div>
-        <div id="v-gesta" class="view"><input type="text" id="mI" placeholder="Misión..."><button class="act-btn" onclick="addM()">AÑADIR</button><div id="mList"></div></div>
-        <div id="v-notas" class="view"><input type="text" id="nI" placeholder="Nota..."><button class="act-btn" onclick="addN()">GUARDAR</button><div id="nList"></div></div>
-    </main>
-
-    <div class="chat-footer" id="cFooter">
-        <input type="text" id="msgIn" placeholder="Escribe..." autocomplete="off">
-        <button class="btn-send" onclick="enviar()">></button>
+        <div id="status">Red: Buscando señal...</div>
     </div>
 </div>
 
+<div id="chat"></div>
+
+<div class="footer">
+    <input type="text" id="msgIn" placeholder="Mensaje...">
+    <button onclick="enviar()">></button>
+</div>
+
 <script>
-    let db = JSON.parse(localStorage.getItem('cit_v29')) || { hp:100, g:20, xp:0, lv:1, m:[], n:[], w:[], curW: {n:"PUÑOS", d:2} };
-    function save(){ localStorage.setItem('cit_v29', JSON.stringify(db)); render(); }
-    function render(){
-        document.getElementById('hpF').style.width = db.hp + "%";
-        document.getElementById('xpF').style.width = db.xp + "%";
-        document.getElementById('lvV').innerText = db.lv;
-        document.getElementById('gV').innerText = db.g + "g";
-        document.getElementById('wV').innerText = db.curW.n;
-        // ... (Renderizado de listas abreviado para el ejemplo)
-    }
-
-    function showV(n, b){
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-        document.getElementById('v-'+n).classList.add('active');
-        b.classList.add('active');
-        document.getElementById('cFooter').style.display = (n==='chat')?'flex':'none';
-    }
-
-    // --- MOTOR RED V29 (ANTI-BLOCK) ---
     let peer, conn;
+    const chat = document.getElementById('chat');
 
-    function init() {
-        // Usamos IDs aleatorios más cortos para evitar filtros de "tracking"
-        peer = new Peer(Math.random().toString(36).substr(2, 6), {
-            debug: 2,
-            config: { 'iceServers': [{ 'urls': 'stun:stun.l.google.com:19302' }] }
+    // 1. INICIALIZACIÓN LIMPIA
+    function iniciar() {
+        // ID aleatorio para evitar bloqueos por "Tracking"
+        const randomId = 'cit-' + Math.floor(Math.random() * 9999);
+        peer = new Peer(randomId, {
+            debug: 3 // Veremos todo en la consola
         });
 
-        peer.on('open', id => document.getElementById('myId').innerText = "MI ID: " + id);
-        
+        peer.on('open', id => {
+            document.getElementById('myId').innerText = "MI ID: " + id;
+            document.getElementById('status').innerText = "Red: LISTO (Comparte tu ID)";
+        });
+
+        // RECEPTOR
         peer.on('connection', c => {
             conn = c;
-            addMsg("SISTEMA", "¡Aliado detectado!");
-            setupData();
+            configurarEventos();
+        });
+
+        peer.on('error', err => {
+            document.getElementById('status').innerText = "Error: " + err.type;
+            console.error(err);
         });
     }
 
+    // 2. CONECTAR AL OTRO
     function conectar() {
-        const tid = document.getElementById('pId').value.trim();
-        if(tid) {
-            conn = peer.connect(tid);
-            setupData();
+        const idAmigo = document.getElementById('pId').value.trim();
+        if(idAmigo) {
+            document.getElementById('status').innerText = "Red: Intentando vincular...";
+            conn = peer.connect(idAmigo);
+            configurarEventos();
         }
     }
 
-    function setupData() {
+    // 3. CONFIGURAR MENSAJES
+    function configurarEventos() {
         conn.on('open', () => {
-            document.getElementById('status').innerText = "SISTEMA: VINCULADO";
+            document.getElementById('status').innerText = "Red: ¡VINCULADO!";
             document.getElementById('status').style.color = "var(--gold)";
-            addMsg("SISTEMA", "¡Conexión lista!");
+            agregarMsg("SISTEMA", "¡Conexión establecida!");
         });
-        conn.on('data', d => { if(d!=="ping") addMsg("ALIADO", d); });
+
+        conn.on('data', data => {
+            agregarMsg("AMIGO", data);
+        });
+
+        conn.on('close', () => {
+            document.getElementById('status').innerText = "Red: Conexión perdida";
+        });
     }
 
+    // 4. ENVIAR
     function enviar() {
-        const i = document.getElementById('msgIn');
-        if(conn && conn.open && i.value) {
-            conn.send(i.value);
-            addMsg("TÚ", i.value);
-            i.value = "";
+        const input = document.getElementById('msgIn');
+        if(conn && conn.open && input.value) {
+            conn.send(input.value);
+            agregarMsg("TÚ", input.value);
+            input.value = "";
+            input.focus();
         } else {
-            alert("Error: Espera a que diga 'VINCULADO' en dorado.");
+            alert("No hay conexión. Asegúrate de que diga ¡VINCULADO!");
         }
     }
 
-    function addMsg(u, m) {
-        const b = document.getElementById('chatBox');
-        b.innerHTML += `<div class="msg"><b>${u}:</b> ${m}</div>`;
-        b.scrollTop = b.scrollHeight;
+    function agregarMsg(autor, texto) {
+        const div = document.createElement('div');
+        div.className = 'm';
+        div.innerHTML = `<b>${autor}:</b> ${texto}`;
+        chat.appendChild(div);
+        chat.scrollTop = chat.scrollHeight;
     }
 
-    function copyId() {
-        const id = document.getElementById('myId').innerText.replace("MI ID: ", "");
-        navigator.clipboard.writeText(id); alert("Copiado");
-    }
+    // ENTER PARA ENVIAR
+    document.getElementById('msgIn').addEventListener('keypress', e => {
+        if(e.key === 'Enter') enviar();
+    });
 
-    init();
-    render();
+    iniciar();
 </script>
 </body>
 </html>
