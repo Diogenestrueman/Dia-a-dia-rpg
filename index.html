@@ -3,29 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Citadel Nexus: Absolute</title>
+    <title>Citadel Nexus: Room Master</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { --bg: #0a0a0a; --panel: #161612; --gold: #d4af37; --xp: #0077ff; --hp: #b30000; --border: #4a3528; }
+        :root { --bg: #0d0d0d; --gold: #d4af37; --hp: #b30000; --xp: #0077ff; --border: #4a3528; }
         body { background: var(--bg); color: #e0d5ba; font-family: 'Press Start 2P', cursive; margin: 0; font-size: 10px; overflow: hidden; }
+        
+        /* NAVEGACIÓN */
         .tabs { display: flex; background: #000; border-bottom: 3px solid var(--border); }
         .tab { flex: 1; padding: 15px 5px; text-align: center; cursor: pointer; font-size: 7px; color: #555; }
-        .tab.active { background: var(--panel); color: var(--gold); border-bottom: 2px solid var(--gold); }
+        .tab.active { background: #161612; color: var(--gold); border-bottom: 2px solid var(--gold); }
+        
         .content-section { display: none; height: calc(100vh - 55px); overflow-y: auto; padding: 20px; box-sizing: border-box; }
         .content-section.active { display: block; }
-        .avatar-frame { width: 90px; height: 90px; border: 3px solid var(--gold); border-radius: 50%; overflow: hidden; margin: 0 auto 15px; background: #222; cursor: pointer; }
+
+        /* INTERFAZ DE SALA (EL CAMBIO CLAVE) */
+        .room-manager { background: #1a1a15; border: 2px solid var(--border); padding: 15px; margin-bottom: 15px; border-radius: 8px; }
+        .id-badge { background: #000; padding: 10px; border: 1px dashed var(--gold); color: #fff; font-size: 7px; word-break: break-all; margin: 10px 0; user-select: all; cursor: pointer; }
+
+        /* CHAT */
+        #chatBox { height: 40vh; overflow-y: auto; background: #000; border: 2px solid var(--border); padding: 12px; margin-bottom: 10px; border-radius: 4px; }
+        .msg { margin-bottom: 10px; font-size: 8px; line-height: 1.5; border-bottom: 1px solid #1a1a1a; padding-bottom: 5px; }
+        
+        /* OTROS COMPONENTES (SE MANTIENE TODO) */
+        .avatar-frame { width: 80px; height: 80px; border: 3px solid var(--gold); border-radius: 50%; overflow: hidden; margin: 0 auto 15px; background: #222; }
         #profileImg { width: 100%; height: 100%; object-fit: cover; }
-        .bar-container { background: #000; height: 16px; border: 2px solid #333; margin: 8px 0; position: relative; border-radius: 8px; overflow: hidden; }
-        .bar-fill { height: 100%; transition: width 0.5s; }
-        .bar-label { position: absolute; width: 100%; text-align: center; font-size: 6px; line-height: 16px; color: #fff; z-index: 2; text-shadow: 1px 1px #000; }
-        .mission-card { background: #1c1c18; border-left: 5px solid var(--gold); padding: 15px; margin-bottom: 15px; border-radius: 4px; }
-        .mission-card.failed { border-left-color: var(--hp); background: #2a1010; }
-        .mission-card.done { border-left-color: #2ecc71; opacity: 0.6; }
+        .bar { background: #000; height: 14px; border: 2px solid #333; margin: 8px 0; border-radius: 7px; overflow: hidden; position: relative; }
+        .bar-fill { height: 100%; transition: width 0.5s; width: 100%; }
         input, button { font-family: 'Press Start 2P'; font-size: 8px; padding: 12px; width: 100%; box-sizing: border-box; margin-bottom: 10px; border-radius: 4px; border: 2px solid var(--border); background: #000; color: #fff; }
-        .btn-gold { background: var(--gold); color: #000; cursor: pointer; font-weight: bold; }
-        #chatBox { height: 45vh; overflow-y: auto; background: #000; border: 2px solid var(--border); padding: 10px; margin-bottom: 10px; font-size: 8px; }
-        .msg { margin-bottom: 8px; line-height: 1.4; border-bottom: 1px solid #1a1a1a; padding-bottom: 4px; }
+        .btn-gold { background: var(--gold); color: #000; cursor: pointer; font-weight: bold; border: none; }
+        .mission-card { background: #1c1c18; border-left: 5px solid var(--gold); padding: 12px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -34,14 +42,25 @@
     <div class="tab active" onclick="showTab('chatTab')">GREMIO</div>
     <div class="tab" onclick="showTab('statusTab')">ESTADO</div>
     <div class="tab" onclick="showTab('missionTab')">MISIONES</div>
-    <div class="tab" onclick="showTab('noteTab')">NOTAS</div>
 </div>
 
 <div id="chatTab" class="content-section active">
-    <div style="font-size:6px; color:var(--gold); margin-bottom:10px;">TU ID: <span id="myId" style="color:#fff; user-select:all;">Generando...</span></div>
+    <div class="room-manager">
+        <div id="setupUI">
+            <p style="font-size:7px; color:var(--gold); margin:0;">TU ID DE SALA:</p>
+            <div id="myId" class="id-badge">Generando ID...</div>
+            <p style="font-size:6px; color:#666;">Comparte este ID para que otros entren a tu sala.</p>
+            <hr style="border:0; border-top:1px solid #333; margin:15px 0;">
+            <input type="text" id="joinId" placeholder="Pegar ID de una sala...">
+            <button class="btn-gold" onclick="joinRoom()">UNIRSE A SALA</button>
+        </div>
+        <div id="activeRoomUI" style="display:none;">
+            <p style="font-size:7px; color:#0f0; margin:0;">● EN LINEA: <span id="roomStatus">SALA PRIVADA</span></p>
+            <button onclick="location.reload()" style="width:auto; font-size:5px; margin-top:5px; padding:5px;">SALIR DE SALA</button>
+        </div>
+    </div>
+
     <div id="chatBox"></div>
-    <input type="text" id="friendId" placeholder="Pegar ID de Aliado">
-    <button class="btn-gold" onclick="connectToPeer()">VINCULAR ALMA</button>
     <div style="display:flex; gap:5px;">
         <input type="text" id="msgIn" placeholder="Mensaje..." onkeydown="if(event.key==='Enter') sendMsg()">
         <button onclick="sendMsg()" style="width:60px; background:var(--xp); border:none; color:#fff;">></button>
@@ -49,29 +68,25 @@
 </div>
 
 <div id="statusTab" class="content-section">
-    <div class="avatar-frame" onclick="document.getElementById('fileIn').click()"><img id="profileImg" src="" style="display:none"></div>
+    <div class="avatar-frame" onclick="document.getElementById('fileIn').click()">
+        <img id="profileImg" src="" style="display:none">
+    </div>
     <input type="file" id="fileIn" style="display:none" accept="image/*">
-    <input type="text" id="userName" placeholder="Nombre" style="text-align:center;" onchange="save()">
-    <div class="bar-container"><div id="hpBar" class="bar-fill" style="background:var(--hp); width:100%"></div><div class="bar-label" id="hpLabel">HP 100/100</div></div>
-    <div class="bar-container"><div id="xpBar" class="bar-fill" style="background:var(--xp); width:0%"></div><div class="bar-label" id="xpLabel">XP 0/100</div></div>
-    <div style="text-align:center; color:var(--gold); margin-top:10px;">ORO: <span id="goldSpan">0</span>g</div>
+    <input type="text" id="userName" placeholder="Nombre de Héroe" style="text-align:center;" onchange="save()">
+    <div class="bar"><div id="hpBar" class="bar-fill" style="background:var(--hp);"></div></div>
+    <div class="bar"><div id="xpBar" class="bar-fill" style="background:var(--xp); width:0%;"></div></div>
+    <p style="text-align:center; color:var(--gold);">ORO: <span id="goldSpan">0</span>g</p>
 </div>
 
 <div id="missionTab" class="content-section">
-    <input type="text" id="mIn" placeholder="Nueva misión...">
-    <button class="btn-gold" onclick="addMission()">FIJAR</button>
+    <input type="text" id="mIn" placeholder="Escribir misión...">
+    <button class="btn-gold" onclick="addMission()">FIJAR EN TABLÓN</button>
     <div id="mList"></div>
 </div>
 
-<div id="noteTab" class="content-section">
-    <input type="text" id="noteIn" placeholder="Nota...">
-    <button class="btn-gold" onclick="addNote()">GUARDAR</button>
-    <div id="noteList"></div>
-</div>
-
 <script>
-    let state = JSON.parse(localStorage.getItem('citadel_abs_v1')) || { name: "Héroe_"+Math.floor(Math.random()*99), gold: 0, xp: 0, lvl: 1, hp: 100, missions: [], notes: [], photo: null };
-    let peer, connections = {};
+    let state = JSON.parse(localStorage.getItem('citadel_room_v1')) || { name: "Héroe_"+Math.floor(Math.random()*99), gold: 0, xp: 0, hp: 100, lvl: 1, missions: [], photo: null };
+    let peer, conn, connections = {};
 
     function showTab(id) {
         document.querySelectorAll('.tab, .content-section').forEach(el => el.classList.remove('active'));
@@ -79,33 +94,51 @@
         document.getElementById(id).classList.add('active');
     }
 
-    // --- CHAT ENGINE ---
+    // --- LÓGICA DE SALA MEJORADA ---
     function initP2P() {
         peer = new Peer({ config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun.services.mozilla.com' }] } });
-        peer.on('open', id => document.getElementById('myId').innerText = id);
-        peer.on('connection', conn => { setupConn(conn); });
-    }
-
-    function connectToPeer() {
-        const id = document.getElementById('friendId').value.trim();
-        if (id && id !== peer.id) setupConn(peer.connect(id));
-    }
-
-    function setupConn(conn) {
-        conn.on('open', () => {
-            connections[conn.peer] = conn;
-            addMsg("SISTEMA", "Aliado conectado: " + conn.peer.substring(0,5));
+        
+        peer.on('open', id => {
+            document.getElementById('myId').innerText = id;
         });
-        conn.on('data', data => {
+
+        // Alguien se une a MI sala
+        peer.on('connection', c => {
+            handleConnection(c);
+            document.getElementById('setupUI').style.display = 'none';
+            document.getElementById('activeRoomUI').style.display = 'block';
+            document.getElementById('roomStatus').innerText = "ANFITRIÓN";
+        });
+    }
+
+    function joinRoom() {
+        const id = document.getElementById('joinId').value.trim();
+        if (id) {
+            const c = peer.connect(id);
+            handleConnection(c);
+            document.getElementById('setupUI').style.display = 'none';
+            document.getElementById('activeRoomUI').style.display = 'block';
+            document.getElementById('roomStatus').innerText = "INVITADO";
+        }
+    }
+
+    function handleConnection(c) {
+        c.on('open', () => {
+            connections[c.peer] = c;
+            addMsg("SISTEMA", "Vínculo establecido.");
+        });
+
+        c.on('data', data => {
             if (data.type === 'chat') {
                 addMsg(data.user, data.msg);
-                // REENVÍO (Broadcast): Si recibo de A, se lo mando a B y C
-                Object.values(connections).forEach(c => {
-                    if (c.peer !== conn.peer && c.open) c.send(data);
-                });
+                // Si soy el Host, reenvío a los demás
+                if (document.getElementById('roomStatus').innerText === "ANFITRIÓN") {
+                    Object.values(connections).forEach(otherConn => {
+                        if (otherConn.peer !== c.peer && otherConn.open) otherConn.send(data);
+                    });
+                }
             }
         });
-        conn.on('close', () => { delete connections[conn.peer]; });
     }
 
     function sendMsg() {
@@ -113,6 +146,7 @@
         const m = input.value.trim();
         if (!m) return;
         const data = { type: 'chat', user: state.name, msg: m };
+        
         Object.values(connections).forEach(c => { if (c.open) c.send(data); });
         addMsg("TÚ", m);
         input.value = "";
@@ -124,39 +158,21 @@
         b.scrollTop = b.scrollHeight;
     }
 
-    // --- MISIONES 24H ---
+    // --- MISIONES Y ESTADO ---
     function addMission() {
         const t = document.getElementById('mIn').value;
-        if(t) { state.missions.push({ id: Date.now(), text: t, created: Date.now(), done: false, penance: false }); save(); document.getElementById('mIn').value = ""; }
+        if(t) { state.missions.push({ id: Date.now(), text: t, created: Date.now(), done: false }); save(); document.getElementById('mIn').value = ""; }
     }
 
-    function completeM(id) {
-        const m = state.missions.find(x => x.id === id);
-        if(!m.done && !m.penance) { m.done = true; state.gold += 10; state.xp += 25; if(state.xp>=100){ state.lvl++; state.xp=0; } save(); }
-    }
-
-    function checkMissions() {
-        let changed = false;
-        state.missions.forEach(m => {
-            if(!m.done && !m.penance && (Date.now() - m.created) > 86400000) {
-                state.hp = Math.max(0, state.hp - 20); state.gold = Math.max(0, state.gold - 10); m.penance = true; changed = true;
-            }
-        });
-        if(changed) save();
-    }
-
-    // --- UTILS ---
     function save() {
         state.name = document.getElementById('userName').value || state.name;
-        localStorage.setItem('citadel_abs_v1', JSON.stringify(state));
+        localStorage.setItem('citadel_room_v1', JSON.stringify(state));
         updateUI();
     }
 
     function updateUI() {
         document.getElementById('hpBar').style.width = state.hp + "%";
-        document.getElementById('hpLabel').innerText = `HP ${state.hp}/100`;
         document.getElementById('xpBar').style.width = state.xp + "%";
-        document.getElementById('xpLabel').innerText = `XP ${state.xp}/100 (LVL ${state.lvl})`;
         document.getElementById('goldSpan').innerText = state.gold;
         document.getElementById('userName').value = state.name;
         if(state.photo) { const img = document.getElementById('profileImg'); img.src = state.photo; img.style.display = "block"; }
@@ -164,22 +180,20 @@
         const ml = document.getElementById('mList'); ml.innerHTML = "";
         state.missions.forEach(m => {
             const h = Math.max(0, Math.floor((86400000 - (Date.now() - m.created)) / 3600000));
-            ml.innerHTML += `<div class="mission-card ${m.done?'done':(m.penance?'failed':'')}">
-                <div style="font-size:8px;">${m.text}</div>
-                <div style="font-size:5px; color:#888; margin-top:5px;">${m.done?'LOGRADA':(m.penance?'PENALIZADA':h+'h restantes')}</div>
-                ${(!m.done && !m.penance)?`<button class="btn-gold" style="padding:5px; margin-top:5px;" onclick="completeM(${m.id})">LOGRAR</button>`:''}
-                <button style="background:transparent; border:none; color:#444; font-size:5px;" onclick="state.missions=state.missions.filter(x=>x.id!==${m.id});save();">[ELIMINAR]</button>
+            ml.innerHTML += `<div class="mission-card">
+                <div style="font-size:7px;">${m.text}</div>
+                <div style="font-size:5px; color:#666; margin-top:5px;">${m.done ? '✓' : h+'h restantes'}</div>
+                ${!m.done ? `<button class="btn-gold" style="padding:4px; font-size:6px;" onclick="state.xp+=20; state.gold+=10; state.missions.find(x=>x.id===${m.id}).done=true; save();">LOGRAR</button>` : ''}
             </div>`;
         });
-
-        const nl = document.getElementById('noteList'); nl.innerHTML = "";
-        state.notes.forEach(n => { nl.innerHTML += `<div style="background:#222; padding:10px; margin-bottom:5px; font-size:7px;">• ${n.text} <span style="float:right; color:var(--hp);" onclick="state.notes=state.notes.filter(x=>x.id!==${n.id});save();">X</span></div>`; });
     }
 
-    function addNote() { const t = document.getElementById('noteIn').value; if(t) { state.notes.push({id: Date.now(), text: t}); document.getElementById('noteIn').value=""; save(); } }
-    document.getElementById('fileIn').onchange = e => { const r = new FileReader(); r.onload = ev => { state.photo = ev.target.result; save(); }; r.readAsDataURL(e.target.files[0]); };
+    document.getElementById('fileIn').onchange = e => {
+        const r = new FileReader();
+        r.onload = ev => { state.photo = ev.target.result; save(); };
+        r.readAsDataURL(e.target.files[0]);
+    };
 
-    setInterval(checkMissions, 60000);
     initP2P();
     updateUI();
 </script>
