@@ -3,103 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Citadel RPG: Estable</title>
+    <title>Citadel RPG: Nexus</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
         :root { --bg: #0d0d0d; --panel: #1a1a1a; --gold: #d4af37; --hp: #ff4d4d; }
+        * { box-sizing: border-box; }
         body { background: var(--bg); color: #e0e0e0; font-family: 'Press Start 2P', cursive; margin: 0; font-size: 8px; display: flex; height: 100vh; flex-direction: column; overflow: hidden; }
         
         /* HEADER & STATS */
-        .stats { display: flex; justify-content: space-around; background: #000; padding: 10px; border-bottom: 2px solid var(--gold); }
+        .stats { display: flex; justify-content: space-around; background: #000; padding: 12px; border-bottom: 2px solid var(--gold); }
         .bar-bg { background: #333; height: 8px; width: 60px; border-radius: 4px; overflow: hidden; margin-top: 4px; }
-        .bar-fill { height: 100%; transition: 0.4s; width: 100%; }
+        .bar-fill { height: 100%; transition: 0.4s; width: 100%; background: var(--hp); }
 
         /* TABS */
         .tabs { display: flex; background: #111; }
-        .tab-btn { flex: 1; padding: 15px; cursor: pointer; border: none; background: none; color: #777; font-family: 'Press Start 2P'; font-size: 7px; border-bottom: 2px solid transparent; }
+        .tab-btn { flex: 1; padding: 15px 5px; cursor: pointer; border: none; background: none; color: #555; font-family: 'Press Start 2P'; font-size: 6px; border-bottom: 2px solid transparent; }
         .tab-btn.active { color: var(--gold); border-bottom: 2px solid var(--gold); background: #1a1a1a; }
 
         /* VIEWS */
         .view { display: none; flex: 1; padding: 20px; overflow-y: auto; }
         .view.active { display: block; }
 
-        /* CARDS */
+        /* UI ELEMENTS */
         .card { background: #222; border: 1px solid #444; padding: 15px; margin-bottom: 15px; border-radius: 4px; }
         button { background: var(--gold); color: #000; border: none; padding: 12px; cursor: pointer; font-family: 'Press Start 2P'; font-size: 7px; width: 100%; margin-top: 5px; }
-        input { background: #000; border: 1px solid #444; color: #fff; padding: 12px; width: 100%; box-sizing: border-box; font-family: 'Press Start 2P'; font-size: 7px; margin-bottom: 10px; }
+        input { background: #000; border: 1px solid #444; color: #fff; padding: 12px; width: 100%; font-family: 'Press Start 2P'; font-size: 7px; margin-bottom: 10px; outline: none; }
 
-        /* CHAT */
-        #chatBox { height: 200px; overflow-y: auto; background: rgba(0,0,0,0.3); border: 1px solid #333; padding: 10px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; }
+        /* CHAT BOX */
+        #chatBox { height: 250px; overflow-y: auto; background: rgba(0,0,0,0.4); border: 1px solid #333; padding: 10px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; }
         .msg { border-left: 2px solid var(--gold); padding-left: 8px; line-height: 1.4; }
+        .msg b { color: var(--gold); font-size: 6px; }
     </style>
 </head>
 <body>
 
 <div class="stats">
-    <div>HP <div class="bar-bg"><div id="hpFill" class="bar-fill" style="background:var(--hp);"></div></div></div>
-    <div>ORO: <span id="goldVal">0</span></div>
-    <div>EQUIPO: <span id="wpnVal">PUÑOS</span></div>
+    <div>VIDA <div class="bar-bg"><div id="hpFill" class="bar-fill"></div></div></div>
+    <div>ORO: <span id="goldVal" style="color:var(--gold)">0</span></div>
+    <div>ARMA: <span id="wpnVal" style="color:var(--gold)">PUÑOS</span></div>
 </div>
 
-<div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('chat', this)">CHAT</button>
-    <button class="tab-btn" onclick="switchTab('misiones', this)">GESTA</button>
-    <button class="tab-btn" onclick="switchTab('tienda', this)">TIENDA</button>
-    <button class="tab-btn" onclick="switchTab('notas', this)">NOTAS</button>
-</div>
+<nav class="tabs">
+    <button class="tab-btn active" onclick="openTab('chat', this)">CHAT</button>
+    <button class="tab-btn" onclick="openTab('misiones', this)">GESTA</button>
+    <button class="tab-btn" onclick="openTab('tienda', this)">TIENDA</button>
+    <button class="tab-btn" onclick="openTab('notas', this)">NOTAS</button>
+</nav>
 
 <div id="view-chat" class="view active">
     <div id="chatBox"></div>
-    <input type="text" id="msgIn" placeholder="Escribe..." onkeydown="if(event.key==='Enter') send()">
-    <div style="font-size:5px; color:#555; margin-bottom:10px;">TU ID: <span id="myId">...</span></div>
-    <input type="text" id="peerId" placeholder="ID de amigo...">
-    <button onclick="conectar()">VINCULAR ALIADO</button>
+    <input type="text" id="msgIn" placeholder="Escribe al aliado..." onkeydown="if(event.key==='Enter') sendChat()">
+    <div style="font-size:5px; color:#555; margin-bottom:10px;">ID PROPIO: <span id="myId" style="color:#aaa">...</span></div>
+    <input type="text" id="peerId" placeholder="ID del aliado para vincular...">
+    <button onclick="conectarAliado()">VINCULAR NEXUS</button>
 </div>
 
 <div id="view-misiones" class="view">
-    <input type="text" id="mIn" placeholder="Nueva misión (24h)...">
-    <button onclick="addM()">FIJAR GESTA</button>
+    <input type="text" id="mIn" placeholder="Nueva gesta (24h)...">
+    <button onclick="nuevaMision()">PUBLICAR GESTA</button>
     <div id="mList" style="margin-top:20px"></div>
 </div>
 
 <div id="view-tienda" class="view">
-    <div class="card">DAGA HIERRO | 40g <button onclick="buy('Daga Hierro', 40)">COMPRAR</button></div>
-    <div class="card">ESPADA REAL | 150g <button onclick="buy('Espada Real', 150)">COMPRAR</button></div>
-    <div class="card">HACHA ORCA | 400g <button onclick="buy('Hacha Orca', 400)">COMPRAR</button></div>
+    <div class="card">DAGA SOMBRÍA | 50g <button onclick="comprar('Daga Sombría', 50)">ADQUIRIR</button></div>
+    <div class="card">ESPADA DEL REY | 150g <button onclick="comprar('Espada del Rey', 150)">ADQUIRIR</button></div>
+    <div class="card">HACHA DE GUERRA | 400g <button onclick="comprar('Hacha de Guerra', 400)">ADQUIRIR</button></div>
 </div>
 
 <div id="view-notas" class="view">
-    <input type="text" id="nIn" placeholder="Escribir nota...">
-    <button onclick="addN()">GUARDAR</button>
+    <input type="text" id="nIn" placeholder="Escribir pensamiento...">
+    <button onclick="nuevaNota()">GUARDAR PERGAMINO</button>
     <div id="nList" style="margin-top:20px"></div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
-    // 1. ESTADO
-    let db = JSON.parse(localStorage.getItem('citadel_v5')) || {
+    // 1. BASE DE DATOS LOCAL
+    let db = JSON.parse(localStorage.getItem('citadel_final_db')) || {
         hp: 100, gold: 0, wpn: "PUÑOS", missions: [], notes: []
     };
 
-    // 2. NAVEGACIÓN (Corregida)
-    function switchTab(viewId, btn) {
-        // Ocultar todas las vistas
+    function guardar() {
+        localStorage.setItem('citadel_final_db', JSON.stringify(db));
+        renderizar();
+    }
+
+    // 2. NAVEGACIÓN
+    function openTab(name, btn) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        // Desactivar todos los botones
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        
-        // Mostrar la vista actual
-        document.getElementById('view-' + viewId).classList.add('active');
+        document.getElementById('view-' + name).classList.add('active');
         btn.classList.add('active');
     }
 
     // 3. LÓGICA DE JUEGO
-    function save() {
-        localStorage.setItem('citadel_v5', JSON.stringify(db));
-        render();
-    }
-
-    function render() {
+    function renderizar() {
         document.getElementById('hpFill').style.width = db.hp + "%";
         document.getElementById('goldVal').innerText = db.gold;
         document.getElementById('wpnVal').innerText = db.wpn;
@@ -107,62 +105,68 @@
         // Misiones
         const ml = document.getElementById('mList'); ml.innerHTML = "";
         db.missions.forEach((m, i) => {
-            const passed = Date.now() - m.start;
-            if(!m.done && !m.fail && passed > 86400000) {
-                db.hp = Math.max(0, db.hp - 20); m.fail = true; 
+            const transcurrido = Date.now() - m.inicio;
+            if(!m.lograda && !m.fallida && transcurrido > 86400000) {
+                db.hp = Math.max(0, db.hp - 20); m.fallida = true;
             }
-            ml.innerHTML += `<div class="card" style="border-left:3px solid ${m.done?'#0f0':(m.fail?'#f00':'#d4af37')}">
-                <p>${m.text}</p>
-                ${(!m.done && !m.fail) ? `<button onclick="doneM(${i})">LOGRAR (+30g)</button>` : ''}
-                <small onclick="delM(${i})" style="color:#555; cursor:pointer; font-size:5px;">[BORRAR]</small>
+            ml.innerHTML += `<div class="card" style="border-left:3px solid ${m.lograda?'#0f0':(m.fallida?'#f00':'#d4af37')}">
+                <p>${m.texto}</p>
+                ${(!m.lograda && !m.fallida) ? `<button onclick="lograrMision(${i})">LOGRAR (+40g)</button>` : ''}
+                <small onclick="borrarMision(${i})" style="color:#555; cursor:pointer; font-size:5px;">[BORRAR]</small>
             </div>`;
         });
 
         // Notas
         const nl = document.getElementById('nList'); nl.innerHTML = "";
         db.notes.forEach((n, i) => {
-            nl.innerHTML += `<div class="card">${n} <small onclick="delN(${i})" style="color:red; cursor:pointer; float:right">X</small></div>`;
+            nl.innerHTML += `<div class="card">${n} <small onclick="borrarNota(${i})" style="color:red; cursor:pointer; float:right">X</small></div>`;
         });
     }
 
-    function addM() { const i = document.getElementById('mIn'); if(i.value){ db.missions.push({text:i.value, start:Date.now(), done:false, fail:false}); i.value=""; save(); } }
-    function doneM(index) { db.missions[index].done = true; db.gold += 30; save(); }
-    function delM(index) { db.missions.splice(index, 1); save(); }
-    function addN() { const i = document.getElementById('nIn'); if(i.value){ db.notes.push(i.value); i.value=""; save(); } }
-    function delN(index) { db.notes.splice(index, 1); save(); }
-    function buy(n, p) { if(db.gold >= p){ db.gold -= p; db.wpn = n; save(); } else { alert("Oro insuficiente"); } }
+    function nuevaMision() { const i = document.getElementById('mIn'); if(i.value){ db.missions.push({texto:i.value, inicio:Date.now(), lograda:false, fallida:false}); i.value=""; guardar(); } }
+    function lograrMision(idx) { db.missions[idx].lograda = true; db.gold += 40; guardar(); }
+    function borrarMision(idx) { db.missions.splice(idx, 1); guardar(); }
+    function nuevaNota() { const i = document.getElementById('nIn'); if(i.value){ db.notes.push(i.value); i.value=""; guardar(); } }
+    function borrarNota(idx) { db.notes.splice(idx, 1); guardar(); }
+    function comprar(nombre, precio) { if(db.gold >= precio){ db.gold -= precio; db.wpn = nombre; guardar(); } else { alert("Oro insuficiente"); } }
 
-    // 4. CHAT (Separado para no romper nada)
+    // 4. CHAT P2P
     let peer, conn;
     try {
         peer = new Peer();
         peer.on('open', id => document.getElementById('myId').innerText = id);
-        peer.on('connection', c => { conn = c; setupChat(); });
-        peer.on('error', () => console.log("Peer offline"));
-    } catch(e) { console.log("Error de red"); }
+        peer.on('connection', c => { conn = c; vincularEventos(); });
+    } catch(e) { console.error("Error de inicio de red"); }
 
-    function conectar() { 
+    function conectarAliado() {
         const id = document.getElementById('peerId').value;
-        if(id) { conn = peer.connect(id); setupChat(); }
+        if(id) { conn = peer.connect(id); vincularEventos(); }
     }
 
-    function setupChat() {
-        conn.on('open', () => addMsg("SISTEMA", "Aliado vinculado."));
-        conn.on('data', d => addMsg("ALIADO", d));
+    function vincularEventos() {
+        conn.on('open', () => pushMsg("SISTEMA", "¡Vínculo establecido!"));
+        conn.on('data', d => pushMsg("ALIADO", d));
+        conn.on('close', () => pushMsg("SISTEMA", "Conexión perdida."));
     }
 
-    function send() {
+    function sendChat() {
         const i = document.getElementById('msgIn');
-        if(conn && i.value) { conn.send(i.value); addMsg("TÚ", i.value); i.value = ""; }
+        if(conn && conn.open && i.value) {
+            conn.send(i.value);
+            pushMsg("TÚ", i.value);
+            i.value = "";
+        } else if(!conn) {
+            alert("Primero vincula un ID de aliado.");
+        }
     }
 
-    function addMsg(u, m) {
+    function pushMsg(u, m) {
         const b = document.getElementById('chatBox');
         b.innerHTML += `<div class="msg"><b>${u}:</b> ${m}</div>`;
         b.scrollTop = b.scrollHeight;
     }
 
-    render();
+    renderizar();
 </script>
 </body>
 </html>
