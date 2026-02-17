@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Citadel RPG | Nexus</title>
+    <title>Citadel RPG | Nexus Dual</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
@@ -22,25 +22,20 @@
         .tab-btn { flex: 1; padding: 15px 2px; cursor: pointer; border: none; background: none; color: #555; font-family: 'Press Start 2P'; font-size: 6px; }
         .tab-btn.active { color: var(--gold); background: var(--panel); border-bottom: 2px solid var(--gold); }
 
-        /* VIEWS */
         .view { display: none; flex: 1; padding: 20px; overflow-y: auto; }
         .view.active { display: flex; flex-direction: column; }
 
         /* CHAT UI */
-        #chatBox { flex: 1; overflow-y: auto; background: rgba(0,0,0,0.5); border: 1px solid #333; padding: 10px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; border-radius: 4px; min-height: 200px; }
-        .msg { border-left: 2px solid var(--gold); padding: 5px 8px; background: rgba(255,255,255,0.05); animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        
+        #chatBox { flex: 1; overflow-y: auto; background: rgba(0,0,0,0.5); border: 1px solid #333; padding: 10px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; border-radius: 4px; }
+        .msg { border-left: 2px solid var(--gold); padding: 5px 8px; background: rgba(255,255,255,0.05); }
         .chat-controls { display: flex; gap: 5px; margin-bottom: 10px; }
-        .chat-controls input { flex: 1; margin-bottom: 0; }
         .btn-send { width: auto; padding: 0 15px; margin-top: 0; }
 
-        /* COMMON ELEMENTS */
+        /* INPUTS & BUTTONS */
         .card { background: #222; border: 1px solid #444; padding: 15px; margin-bottom: 15px; border-radius: 4px; }
         button { background: var(--gold); color: #000; border: none; padding: 12px; cursor: pointer; font-family: 'Press Start 2P'; font-size: 7px; width: 100%; margin-top: 5px; border-bottom: 4px solid #8a6d20; outline: none; }
         button:active { border-bottom: 0; transform: translateY(4px); }
         input { background: #000; border: 1px solid #444; color: #fff; padding: 12px; width: 100%; font-family: 'Press Start 2P'; font-size: 7px; margin-bottom: 10px; outline: none; }
-        input:focus { border-color: var(--gold); }
     </style>
 </head>
 <body>
@@ -67,12 +62,12 @@
         <button class="btn-send" onclick="sendMsg()">></button>
     </div>
 
-    <div style="font-size:5px; color:#555; margin-bottom: 5px;">ID: <span id="myId" style="color:var(--gold); user-select:all;">...</span></div>
+    <div style="font-size:5px; color:#555; margin-bottom: 5px;">ID: <span id="myId" style="color:var(--gold); user-select:all;">Generando...</span></div>
     <div style="display:flex; gap:5px;">
         <input type="text" id="peerId" placeholder="ID Aliado..." style="margin-bottom:0;">
         <button style="width:auto; margin-top:0;" onclick="connectPeer()">VINCULAR</button>
     </div>
-    <div id="status-p2p" style="font-size:5px; color:#777; margin-top:5px;">Iniciando...</div>
+    <div id="status-p2p" style="font-size:5px; color:#777; margin-top:5px;">Estado: Desconectado</div>
 </div>
 
 <div id="view-misiones" class="view">
@@ -93,11 +88,11 @@
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('citadel_v10')) || {
+    let db = JSON.parse(localStorage.getItem('citadel_v11')) || {
         hp: 100, gold: 0, xp: 0, lvl: 1, wpn: "PUÑOS", missions: [], notes: []
     };
 
-    function save() { localStorage.setItem('citadel_v10', JSON.stringify(db)); render(); }
+    function save() { localStorage.setItem('citadel_v11', JSON.stringify(db)); render(); }
 
     function switchTab(viewId, btn) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -113,49 +108,73 @@
         document.getElementById('lvlVal').innerText = db.lvl;
         document.getElementById('wpnVal').innerText = db.wpn;
 
-        if(db.xp >= 100) { db.xp = 0; db.lvl++; db.hp = 100; addMsg("SISTEMA", "¡NIVEL " + db.lvl + "!"); save(); }
-
         const ml = document.getElementById('mList'); ml.innerHTML = "";
         db.missions.forEach((m, i) => {
             ml.innerHTML += `<div class="card" style="border-left:4px solid ${m.done ? '#2ecc71' : '#d4af37'}">
                 <div>${m.text}</div>
-                ${!m.done ? `<button onclick="completeM(${i})">LISTO (+30g +25XP)</button>` : '<small style="color:#2ecc71">COMPLETA</small>'}
-                <small onclick="delM(${i})" style="color:#555; cursor:pointer; font-size:5px; display:block; margin-top:10px;">[BORRAR]</small>
+                ${!m.done ? `<button onclick="completeM(${i})">CONCLUIR</button>` : ''}
             </div>`;
         });
 
         const nl = document.getElementById('nList'); nl.innerHTML = "";
         db.notes.forEach((n, i) => {
-            nl.innerHTML += `<div class="card">${n} <small onclick="delN(${i})" style="color:red; cursor:pointer; float:right">X</small></div>`;
+            nl.innerHTML += `<div class="card">${n} <small onclick="delN(${i})" style="color:red; float:right; cursor:pointer">X</small></div>`;
         });
     }
 
-    function addMission() { const i = document.getElementById('mIn'); if(i.value){ db.missions.push({text:i.value, start:Date.now(), done:false}); i.value=""; save(); } }
+    function addMission() { const i = document.getElementById('mIn'); if(i.value){ db.missions.push({text:i.value, done:false}); i.value=""; save(); } }
     function completeM(idx) { db.missions[idx].done = true; db.gold += 30; db.xp += 25; save(); }
-    function delM(idx) { db.missions.splice(idx, 1); save(); }
     function addNote() { const i = document.getElementById('nIn'); if(i.value){ db.notes.push(i.value); i.value=""; save(); } }
     function delN(idx) { db.notes.splice(idx, 1); save(); }
     function buy(n, p) { if(db.gold >= p){ db.gold -= p; db.wpn = n; save(); } else { alert("Oro insuficiente"); } }
 
-    // --- P2P CORE ---
+    // --- LÓGICA DE RED DUAL (P2P) ---
     let peer, conn;
     const statusEl = document.getElementById('status-p2p');
 
     function initPeer() {
         peer = new Peer({ config: {'iceServers': [{ url: 'stun:stun.l.google.com:19302' }]} });
-        peer.on('open', id => { document.getElementById('myId').innerText = id; statusEl.innerText = "Conectado. Esperando aliado..."; });
-        peer.on('connection', c => { conn = c; setupConn(); });
+        
+        peer.on('open', id => {
+            document.getElementById('myId').innerText = id;
+            statusEl.innerText = "Estado: Listo para conectar";
+        });
+
+        // Cuando ALGUIEN se conecta a TI
+        peer.on('connection', c => {
+            conn = c;
+            setupConn();
+            addMsg("SISTEMA", "¡Aliado detectado!");
+        });
+
         peer.on('error', e => { statusEl.innerText = "Error: " + e.type; });
     }
 
     function connectPeer() {
         const id = document.getElementById('peerId').value.trim();
-        if(id) { statusEl.innerText = "Buscando..."; conn = peer.connect(id); setupConn(); }
+        if(id) {
+            statusEl.innerText = "Vinculando...";
+            // Al conectar, guardamos la conexión
+            conn = peer.connect(id);
+            setupConn();
+        }
     }
 
     function setupConn() {
-        conn.on('open', () => { statusEl.innerText = "¡VINCULADO!"; addMsg("SISTEMA", "Aliado entró al chat."); });
-        conn.on('data', d => addMsg("ALIADO", d));
+        // Importante: escuchar eventos de la conexión actual
+        conn.on('open', () => {
+            statusEl.innerText = "Estado: ¡Sincronizado!";
+            addMsg("SISTEMA", "Vínculo de alma establecido.");
+        });
+
+        conn.on('data', data => {
+            addMsg("ALIADO", data);
+        });
+
+        conn.on('close', () => {
+            statusEl.innerText = "Estado: Desconectado";
+            addMsg("SISTEMA", "Conexión perdida.");
+        });
     }
 
     function sendMsg() {
@@ -165,6 +184,8 @@
             addMsg("TÚ", i.value);
             i.value = "";
             i.focus();
+        } else {
+            alert("No hay conexión activa.");
         }
     }
 
