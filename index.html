@@ -3,114 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Citadel RPG | Nexus</title>
+    <title>Citadel RPG | Nexus Mobile</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-    
     <style>
         :root { --bg: #0d0d0d; --gold: #d4af37; --hp: #ff4d4d; --xp: #00aff4; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); color: #e0e0e0; font-family: 'Press Start 2P', cursive; margin: 0; font-size: 8px; display: flex; height: 100vh; flex-direction: column; overflow: hidden; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
         
-        /* HEADER */
-        .header-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #000; padding: 12px; border-bottom: 2px solid var(--gold); }
-        .bar-bg { background: #333; height: 8px; width: 100%; border-radius: 4px; overflow: hidden; margin-top: 4px; border: 1px solid #444; }
+        body { 
+            background: var(--bg); 
+            color: #e0e0e0; 
+            font-family: 'Press Start 2P', cursive; 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; /* Evita el scroll global */
+        }
+
+        /* HEADER FIJO ARRIBA */
+        .top-container { flex-shrink: 0; z-index: 100; background: #000; border-bottom: 2px solid var(--gold); }
+        .header-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px; font-size: 7px; }
+        .bar-bg { background: #333; height: 6px; width: 100%; border-radius: 3px; overflow: hidden; margin-top: 3px; }
         .bar-hp { height: 100%; background: var(--hp); width: 100%; transition: 0.5s; }
         .bar-xp { height: 100%; background: var(--xp); width: 0%; transition: 0.5s; }
 
-        /* NAVEGACIÓN */
-        .tabs { display: flex; background: #111; border-bottom: 1px solid #333; }
-        .tab-btn { flex: 1; padding: 15px 5px; cursor: pointer; border: none; background: none; color: #555; font-family: 'Press Start 2P'; font-size: 6px; text-align: center; }
-        .tab-btn.active { color: var(--gold); background: #1a1a1a; border-bottom: 2px solid var(--gold); }
+        /* NAVEGACIÓN FIJA */
+        .tabs { display: flex; background: #111; }
+        .tab-btn { flex: 1; padding: 12px 2px; border: none; background: none; color: #555; font-family: 'Press Start 2P'; font-size: 6px; cursor: pointer; border-bottom: 2px solid transparent; }
+        .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); background: #1a1a1a; }
 
-        /* VISTAS */
-        .view { display: none; flex: 1; padding: 15px; overflow-y: auto; flex-direction: column; }
+        /* ÁREA DE CONTENIDO (SCROLLABLE) */
+        .main-content { flex: 1; overflow-y: auto; position: relative; display: flex; flex-direction: column; }
+        .view { display: none; padding: 15px; flex-direction: column; height: 100%; }
         .view.active { display: flex; }
 
-        /* CHAT */
-        #chatBox { flex: 1; overflow-y: auto; background: rgba(0,0,0,0.8); border: 1px solid #333; padding: 10px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; border-radius: 4px; min-height: 150px; }
-        .msg { border-left: 2px solid var(--gold); padding: 5px 8px; background: rgba(255,255,255,0.05); font-size: 7px; line-height: 1.5; }
-        
-        .chat-input-row { display: flex; gap: 10px; min-height: 50px; margin-bottom: 10px; }
-        #msgIn { flex: 1; background: #000; border: 2px solid #444; color: #fff; padding: 10px; font-family: 'Press Start 2P'; font-size: 9px; outline: none; }
-        .btn-send { width: 60px; background: var(--gold); color: #000; border: none; font-family: 'Press Start 2P'; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+        /* CHAT ADAPTATIVO */
+        #chatBox { 
+            flex: 1; 
+            background: rgba(0,0,0,0.5); 
+            border: 1px solid #222; 
+            padding: 10px; 
+            margin-bottom: 10px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px; 
+            overflow-y: auto;
+            font-size: 7px;
+            border-radius: 4px;
+        }
+        .msg { border-left: 2px solid var(--gold); padding: 4px 8px; background: rgba(255,255,255,0.03); line-height: 1.4; word-break: break-word; }
 
-        .peer-id-area { font-size: 5px; background: #111; padding: 10px; border-radius: 4px; border: 1px solid #222; }
-        .connect-box { display: flex; gap: 5px; margin-top: 5px; }
-        .connect-box input { flex: 1; background: #000; border: 1px solid #444; color: #fff; padding: 8px; font-size: 6px; font-family: 'Press Start 2P'; }
-        .btn-connect { background: #333; color: #fff; border: 1px solid #555; padding: 0 10px; font-size: 6px; font-family: 'Press Start 2P'; cursor: pointer; }
+        /* INPUT AREA FIJA ABAJO */
+        .input-area { 
+            padding: 10px; 
+            background: #111; 
+            border-top: 1px solid #333; 
+            display: flex; 
+            gap: 8px; 
+            align-items: center;
+        }
+        #msgIn { 
+            flex: 1; 
+            background: #000; 
+            border: 1px solid #444; 
+            color: #fff; 
+            padding: 12px; 
+            font-family: 'Press Start 2P'; 
+            font-size: 8px; 
+            border-radius: 4px;
+            outline: none;
+        }
+        .btn-send { 
+            width: 45px; 
+            height: 40px; 
+            background: var(--gold); 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer;
+            font-weight: bold;
+            display: flex; align-items: center; justify-content: center;
+        }
 
-        /* GENERAL */
-        .card { background: #1a1a1a; border: 1px solid #333; padding: 15px; margin-bottom: 10px; border-radius: 4px; }
-        button.action-btn { background: var(--gold); color: #000; border: none; padding: 12px; width: 100%; font-family: 'Press Start 2P'; font-size: 7px; cursor: pointer; margin-top: 10px; }
+        /* VINCULACIÓN (DENTRO DEL CHAT PERO ARRIBA) */
+        .connection-panel { background: #1a1a1a; padding: 8px; border-radius: 4px; margin-bottom: 10px; font-size: 5px; }
+        .conn-row { display: flex; gap: 5px; margin-top: 5px; }
+        .conn-row input { flex: 1; background: #000; border: 1px solid #333; color: #fff; padding: 5px; font-family: 'Press Start 2P'; font-size: 6px; }
+
+        /* GESTA / TIENDA / NOTAS */
+        .card { background: #1a1a1a; border: 1px solid #333; padding: 12px; margin-bottom: 10px; border-radius: 4px; }
+        .action-btn { background: var(--gold); color: #000; border: none; padding: 10px; width: 100%; font-family: 'Press Start 2P'; font-size: 7px; margin-top: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div class="header-stats">
-    <div>VIDA <div class="bar-bg"><div id="hpFill" class="bar-hp"></div></div></div>
-    <div>XP (LV <span id="lvlVal">1</span>) <div class="bar-bg"><div id="xpFill" class="bar-xp"></div></div></div>
-    <div style="font-size:6px; color:var(--gold); margin-top:5px;">ORO: <span id="goldVal">0</span>g</div>
-    <div style="font-size:6px; color:#888; margin-top:5px;">EQ: <span id="wpnVal">PUÑOS</span></div>
+<div class="top-container">
+    <div class="header-stats">
+        <div>HP <div class="bar-bg"><div id="hpFill" class="bar-hp"></div></div></div>
+        <div>XP (LV <span id="lvlVal">1</span>) <div class="bar-bg"><div id="xpFill" class="bar-xp"></div></div></div>
+        <div style="color:var(--gold)">ORO: <span id="goldVal">0</span></div>
+        <div style="color:#888; text-align:right" id="wpnVal">PUÑOS</div>
+    </div>
+    <nav class="tabs">
+        <button class="tab-btn active" id="tab-chat" onclick="setTab('chat')">CHAT</button>
+        <button class="tab-btn" id="tab-gesta" onclick="setTab('gesta')">GESTA</button>
+        <button class="tab-btn" id="tab-tienda" onclick="setTab('tienda')">TIENDA</button>
+        <button class="tab-btn" id="tab-notas" onclick="setTab('notas')">NOTAS</button>
+    </nav>
 </div>
 
-<nav class="tabs">
-    <button class="tab-btn active" id="btn-chat" onclick="switchTab('chat')">CHAT</button>
-    <button class="tab-btn" id="btn-gesta" onclick="switchTab('gesta')">GESTA</button>
-    <button class="tab-btn" id="btn-tienda" onclick="switchTab('tienda')">TIENDA</button>
-    <button class="tab-btn" id="btn-notas" onclick="switchTab('notas')">NOTAS</button>
-</nav>
-
-<div id="view-chat" class="view active">
-    <div id="chatBox"></div>
-    
-    <div class="chat-input-row">
-        <input type="text" id="msgIn" placeholder="Escribe..." autocomplete="off">
-        <button class="btn-send" onclick="sendMsg()">></button>
-    </div>
-
-    <div class="peer-id-area">
-        <div>TU ID (Toca para copiar):</div>
-        <div id="myId" style="color:var(--gold); margin:5px 0; word-break:break-all; cursor:pointer;" onclick="copyId()">Cargando ID...</div>
-        <div class="connect-box">
-            <input type="text" id="peerId" placeholder="ID del Aliado">
-            <button class="btn-connect" onclick="connectToPeer()">VINCULAR</button>
+<main class="main-content">
+    <div id="view-chat" class="view active">
+        <div class="connection-panel">
+            <div id="myId" onclick="copyMyId()" style="color:var(--gold); margin-bottom:5px; cursor:pointer;">ID: Cargando...</div>
+            <div class="conn-row">
+                <input type="text" id="peerId" placeholder="ID ALIADO">
+                <button onclick="connectAliado()" style="background:var(--gold); border:none; padding:0 10px; font-size:6px; font-family:'Press Start 2P';">VINCULAR</button>
+            </div>
+            <div id="netStatus" style="color:#555; margin-top:5px;">Red: Desconectado</div>
         </div>
-        <div id="status" style="margin-top:5px; color:#555;">Estado: Desconectado</div>
+        <div id="chatBox"></div>
     </div>
-</div>
 
-<div id="view-gesta" class="view">
-    <input type="text" id="mIn" placeholder="Nueva misión..." style="background:#000; border:1px solid #444; color:#fff; padding:12px; font-family:'Press Start 2P'; font-size:8px; width:100%;">
-    <button class="action-btn" onclick="addM()">REGISTRAR</button>
-    <div id="mList" style="margin-top:15px"></div>
-</div>
+    <div id="view-gesta" class="view">
+        <input type="text" id="mIn" placeholder="Nueva misión..." style="background:#000; border:1px solid #444; color:#fff; padding:10px; font-family:'Press Start 2P'; font-size:8px; margin-bottom:10px;">
+        <button class="action-btn" onclick="addGesta()">AÑADIR GESTA</button>
+        <div id="mList" style="margin-top:15px"></div>
+    </div>
 
-<div id="view-tienda" class="view">
-    <div class="card">DAGA SOMBRÍA | 50g <button class="action-btn" onclick="buy('Daga Sombría', 50)">COMPRAR</button></div>
-    <div class="card">ESPADA REAL | 200g <button class="action-btn" onclick="buy('Espada Real', 200)">COMPRAR</button></div>
-</div>
+    <div id="view-tienda" class="view">
+        <div class="card">DAGA SOMBRÍA | 50g <button class="action-btn" onclick="buyIt('Daga Sombría', 50)">COMPRAR</button></div>
+        <div class="card">ESPADA REAL | 200g <button class="action-btn" onclick="buyIt('Espada Real', 200)">COMPRAR</button></div>
+    </div>
 
-<div id="view-notas" class="view">
-    <input type="text" id="nIn" placeholder="Nota rápida..." style="background:#000; border:1px solid #444; color:#fff; padding:12px; font-family:'Press Start 2P'; font-size:8px; width:100%;">
-    <button class="action-btn" onclick="addN()">GUARDAR</button>
-    <div id="nList" style="margin-top:15px"></div>
+    <div id="view-notas" class="view">
+        <input type="text" id="nIn" placeholder="Escribir nota..." style="background:#000; border:1px solid #444; color:#fff; padding:10px; font-family:'Press Start 2P'; font-size:8px; margin-bottom:10px;">
+        <button class="action-btn" onclick="addNota()">GUARDAR NOTA</button>
+        <div id="nList" style="margin-top:15px"></div>
+    </div>
+</main>
+
+<div class="input-area" id="inputSection">
+    <input type="text" id="msgIn" placeholder="Escribe..." autocomplete="off">
+    <button class="btn-send" onclick="sendMsg()">></button>
 </div>
 
 <script>
-    // --- MOTOR DEL JUEGO ---
-    let db = JSON.parse(localStorage.getItem('citadel_v20')) || { hp: 100, gold: 0, xp: 0, lvl: 1, wpn: "PUÑOS", missions: [], notes: [] };
+    // --- LÓGICA DE PERSISTENCIA ---
+    let db = JSON.parse(localStorage.getItem('citadel_v21')) || { hp:100, gold:0, xp:0, lvl:1, wpn:"PUÑOS", missions:[], notes:[] };
+    function saveAll(){ localStorage.setItem('citadel_v21', JSON.stringify(db)); renderUI(); }
 
-    function save() { localStorage.setItem('citadel_v20', JSON.stringify(db)); render(); }
-
-    function switchTab(viewId) {
+    function setTab(name) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('view-' + viewId).classList.add('active');
-        document.getElementById('btn-' + viewId).classList.add('active');
+        document.getElementById('view-'+name).classList.add('active');
+        document.getElementById('tab-'+name).classList.add('active');
+        // Ocultar input si no es chat
+        document.getElementById('inputSection').style.display = (name === 'chat') ? 'flex' : 'none';
     }
 
-    function render() {
+    function renderUI() {
         document.getElementById('hpFill').style.width = db.hp + "%";
         document.getElementById('xpFill').style.width = db.xp + "%";
         document.getElementById('goldVal').innerText = db.gold;
@@ -121,7 +172,7 @@
         db.missions.forEach((m, i) => {
             ml.innerHTML += `<div class="card">
                 <div>${m.text}</div>
-                ${!m.done ? `<button class="action-btn" onclick="doneM(${i})">CONCLUIR (+25XP)</button>` : '<div style="color:green;margin-top:10px;">HECHO</div>'}
+                ${!m.done ? `<button class="action-btn" onclick="doM(${i})">CONCLUIR</button>` : '<div style="color:green; font-size:6px; margin-top:5px;">LOGRADO</div>'}
             </div>`;
         });
 
@@ -131,94 +182,11 @@
         });
     }
 
-    function addM() { const i = document.getElementById('mIn'); if(i.value){ db.missions.push({text:i.value, done:false}); i.value=""; save(); } }
-    function doneM(i) { db.missions[i].done = true; db.gold += 30; db.xp += 25; if(db.xp>=100){db.xp=0;db.lvl++;db.hp=100;} save(); }
-    function addN() { const i = document.getElementById('nIn'); if(i.value){ db.notes.push(i.value); i.value=""; save(); } }
-    function delN(i) { db.notes.splice(i,1); save(); }
-    function buy(n,p) { if(db.gold>=p){db.gold-=p; db.wpn=n; save();} else {alert("Oro insuficiente");} }
+    // Funciones Gesta
+    function addGesta(){ const i=document.getElementById('mIn'); if(i.value){ db.missions.push({text:i.value, done:false}); i.value=""; saveAll(); } }
+    function doM(i){ db.missions[i].done=true; db.gold+=30; db.xp+=25; if(db.xp>=100){db.xp=0;db.lvl++;db.hp=100;} saveAll(); }
+    function addNota(){ const i=document.getElementById('nIn'); if(i.value){ db.notes.push(i.value); i.value=""; saveAll(); } }
+    function delN(i){ db.notes.splice(i,1); saveAll(); }
+    function buyIt(n,p){ if(db.gold>=p){db.gold-=p; db.wpn=n; saveAll();} else {alert("Oro insuficiente");} }
 
-    // --- MOTOR P2P (A PRUEBA DE BLOQUEOS) ---
-    let peer, conn;
-
-    function initPeer() {
-        // Usamos IDs aleatorios para evitar que los adblockers nos sigan
-        peer = new Peer(null, { 
-            debug: 2,
-            config: {'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }]} 
-        });
-
-        peer.on('open', id => {
-            document.getElementById('myId').innerText = id;
-            updateStatus("Listo.");
-        });
-
-        // IMPORTANTE: Esta parte acepta conexiones entrantes y las activa
-        peer.on('connection', incomingConn => {
-            if (conn) conn.close();
-            conn = incomingConn;
-            setupConnEvents();
-            addMsg("SISTEMA", "¡Aliado vinculado!");
-        });
-
-        peer.on('error', err => {
-            updateStatus("Error: " + err.type);
-            console.error(err);
-        });
-    }
-
-    function connectToPeer() {
-        const targetId = document.getElementById('peerId').value.trim();
-        if(targetId) {
-            updateStatus("Vinculando...");
-            conn = peer.connect(targetId, { reliable: true });
-            setupConnEvents();
-        }
-    }
-
-    function setupConnEvents() {
-        conn.on('open', () => {
-            updateStatus("¡Sincronizado!");
-        });
-        conn.on('data', data => {
-            addMsg("ALIADO", data);
-        });
-        conn.on('close', () => {
-            updateStatus("Desconectado.");
-        });
-    }
-
-    function sendMsg() {
-        const input = document.getElementById('msgIn');
-        if(conn && conn.open && input.value.trim()) {
-            conn.send(input.value);
-            addMsg("TÚ", input.value);
-            input.value = "";
-            input.focus();
-        } else {
-            alert("No hay conexión activa. Asegúrate de que ambos vean '¡Sincronizado!'");
-        }
-    }
-
-    function addMsg(u, m) {
-        const b = document.getElementById('chatBox');
-        b.innerHTML += `<div class="msg"><b>${u}:</b> ${m}</div>`;
-        b.scrollTop = b.scrollHeight;
-    }
-
-    function updateStatus(s) { document.getElementById('status').innerText = "Estado: " + s; }
-    
-    function copyId() {
-        const id = document.getElementById('myId').innerText;
-        navigator.clipboard.writeText(id);
-        alert("ID Copiado");
-    }
-
-    // Enter para enviar
-    document.getElementById('msgIn').addEventListener('keypress', e => { if(e.key === 'Enter') sendMsg(); });
-
-    // Iniciar
-    initPeer();
-    render();
-</script>
-</body>
-</html>
+    // --- RED P2P (MEJORADO PARA CELULAR) ---
