@@ -3,41 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Citadel RPG | Inmortal v31</title>
+    <title>Citadel RPG v32</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.2/peerjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
-        :root { --bg: #0d0d0d; --gold: #d4af37; --hp: #ff4d4d; --xp: #00aff4; --panel: #1a1a1a; }
+        :root { --bg: #0d0d0d; --gold: #d4af37; --hp: #ff4d4d; --xp: #00aff4; }
         * { box-sizing: border-box; touch-action: manipulation; margin: 0; padding: 0; }
         html, body { height: 100%; overflow: hidden; background: var(--bg); color: #e0e0e0; font-family: 'Press Start 2P', cursive; }
         .app-container { height: 100%; display: flex; flex-direction: column; }
 
-        /* STATS */
+        /* CABECERA DE ESTADÍSTICAS */
         .stats-bar { flex-shrink: 0; background: #000; padding: 12px; border-bottom: 2px solid var(--gold); display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 6px; }
         .bar { background: #333; height: 6px; width: 100%; border-radius: 3px; margin-top: 4px; overflow: hidden; }
-        .hp-fill { background: var(--hp); height: 100%; width: 100%; transition: 0.5s; }
-        .xp-fill { background: var(--xp); height: 100%; width: 0%; transition: 0.5s; }
+        .hp-fill { background: var(--hp); height: 100%; width: 100%; }
+        .xp-fill { background: var(--xp); height: 100%; width: 0%; }
 
-        /* TABS */
+        /* NAVEGACIÓN */
         .nav { flex-shrink: 0; display: flex; background: #111; }
         .nav-btn { flex: 1; padding: 15px 0; border: none; background: none; color: #555; font-family: 'Press Start 2P'; font-size: 6px; cursor: pointer; border-bottom: 2px solid transparent; }
-        .nav-btn.active { color: var(--gold); border-bottom-color: var(--gold); background: var(--panel); }
+        .nav-btn.active { color: var(--gold); border-bottom-color: var(--gold); background: #1a1a1a; }
 
-        /* CONTENT */
+        /* CONTENIDO PRINCIPAL */
         .content { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; }
         .view { display: none; padding: 15px; flex-direction: column; height: 100%; }
         .view.active { display: flex; }
 
-        /* CARDS */
-        .card { background: var(--panel); padding: 12px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #333; font-size: 7px; }
+        /* TARJETAS Y BOTONES */
+        .card { background: #1a1a1a; padding: 12px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #333; font-size: 7px; position: relative; }
         .act-btn { background: var(--gold); color: #000; border: none; padding: 12px; width: 100%; font-family: 'Press Start 2P'; font-size: 7px; margin-top: 10px; cursor: pointer; border-radius: 4px; }
-        input[type="text"] { background: #000; color: #fff; padding: 12px; border: 1px solid #444; font-family: 'Press Start 2P'; font-size: 8px; width: 100%; outline: none; margin-bottom: 10px; border-radius: 4px; }
+        input[type="text"] { background: #000; color: #fff; padding: 12px; border: 1px solid #444; font-family: 'Press Start 2P'; font-size: 8px; width: 100%; outline: none; margin-bottom: 10px; }
 
         /* CHAT */
-        #chatBox { flex-grow: 1; background: rgba(0,0,0,0.4); border: 1px solid #222; padding: 10px; overflow-y: auto; font-size: 7px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 5px; border-radius: 4px; }
+        #chatBox { flex-grow: 1; background: rgba(0,0,0,0.4); border: 1px solid #222; padding: 10px; overflow-y: auto; font-size: 7px; display: flex; flex-direction: column; gap: 8px; border-radius: 4px; }
         .msg { border-left: 2px solid var(--gold); padding: 5px; background: rgba(255,255,255,0.02); }
         .chat-footer { flex-shrink: 0; padding: 10px; background: #000; display: flex; gap: 8px; border-top: 1px solid #333; }
-        .btn-send { width: 50px; background: var(--gold); border: none; border-radius: 4px; font-size: 14px; font-weight: bold; cursor: pointer; }
+        .btn-send { width: 50px; background: var(--gold); border: none; border-radius: 4px; font-size: 14px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -46,7 +46,7 @@
     <div class="stats-bar">
         <div>HP <div class="bar"><div id="hpF" class="hp-fill"></div></div></div>
         <div>XP (LV <span id="lvV">1</span>) <div class="bar"><div id="xpF" class="xp-fill"></div></div></div>
-        <div style="color:var(--gold); margin-top:5px;">ORO: <span id="gV">0</span>g</div>
+        <div style="color:var(--gold); margin-top:5px;">ORO: <span id="gV">20</span>g</div>
         <div style="color:#aaa; margin-top:5px; text-align:right;">EQ: <span id="wV">PUÑOS</span></div>
     </div>
 
@@ -72,22 +72,22 @@
 
         <div id="v-forja" class="view">
             <div class="card">
-                <h3 style="color:var(--gold); margin-bottom:10px;">YUNQUE DE ALMAS</h3>
-                <p>Costo: 10 Oro. Daño aleatorio (1-20).</p>
-                <input type="text" id="wIn" placeholder="Nombre del arma..." style="margin-top:10px;">
-                <button class="act-btn" onclick="craftWeapon()">FORJAR</button>
+                <h3 style="color:var(--gold); margin-bottom:8px;">FORJA DE ARMAMENTO</h3>
+                <p style="font-size:5px;">Crea armas por 10g con daño aleatorio.</p>
+                <input type="text" id="wIn" placeholder="Nombre de arma..." style="margin-top:10px;">
+                <button class="act-btn" onclick="craftWeapon()">FORJAR ARMA (10g)</button>
             </div>
             <div id="wList"></div>
         </div>
 
         <div id="v-gesta" class="view">
-            <input type="text" id="mI" placeholder="Nueva misión...">
-            <button class="act-btn" onclick="addM()">REGISTRAR GESTA</button>
+            <input type="text" id="mI" placeholder="Misión a realizar...">
+            <button class="act-btn" onclick="addM()">AÑADIR GESTA</button>
             <div id="mList" style="margin-top:15px"></div>
         </div>
 
         <div id="v-notas" class="view">
-            <input type="text" id="nI" placeholder="Escribir nota...">
+            <input type="text" id="nI" placeholder="Escribir nota en pergamino...">
             <button class="act-btn" onclick="addNote()">GUARDAR NOTA</button>
             <div id="nList" style="margin-top:15px"></div>
         </div>
@@ -100,12 +100,12 @@
 </div>
 
 <script>
-    // --- BASE DE DATOS LOCAL ---
-    let db = JSON.parse(localStorage.getItem('cit_v31')) || { 
+    // --- LÓGICA DE JUEGO ---
+    let db = JSON.parse(localStorage.getItem('cit_v32')) || { 
         hp:100, g:20, xp:0, lv:1, m:[], n:[], w:[], curW: {n:"PUÑOS", d:2} 
     };
 
-    function save(){ localStorage.setItem('cit_v31', JSON.stringify(db)); render(); }
+    function save(){ localStorage.setItem('cit_v32', JSON.stringify(db)); render(); }
 
     function render(){
         document.getElementById('hpF').style.width = db.hp + "%";
@@ -118,10 +118,10 @@
         db.m.forEach((t, i) => { ml.innerHTML += `<div class="card">${t} <button class="act-btn" onclick="finM(${i})">CONCLUIR (+20g)</button></div>`; });
 
         const nl = document.getElementById('nList'); nl.innerHTML = "";
-        db.n.forEach((note, i) => { nl.innerHTML += `<div class="card">${note.txt}<br><span style="font-size:5px;color:#666">${note.date}</span> <span onclick="delN(${i})" style="color:red;float:right">ELIMINAR</span></div>`; });
+        db.n.forEach((note, i) => { nl.innerHTML += `<div class="card"><b>NOTA:</b> ${note.txt}<br><small style="font-size:4px;color:#666">${note.date}</small> <span onclick="delN(${i})" style="color:red;float:right;cursor:pointer">X</span></div>`; });
 
         const wl = document.getElementById('wList'); wl.innerHTML = "";
-        db.w.forEach((arm, i) => { wl.innerHTML += `<div class="card"><b>${arm.n}</b> (Dmg: ${arm.d}) <button class="act-btn" onclick="equip(${i})">EQUIPAR</button></div>`; });
+        db.w.forEach((arm, i) => { wl.innerHTML += `<div class="card"><b>${arm.n}</b> (Daño: ${arm.d}) <button class="act-btn" onclick="equip(${i})">EQUIPAR</button></div>`; });
     }
 
     function showV(n, btn){
@@ -132,14 +132,14 @@
         document.getElementById('cFooter').style.display = (n==='chat')?'flex':'none';
     }
 
-    // --- ACCIONES DEL JUEGO ---
+    // ACCIONES
     function craftWeapon(){
         const i = document.getElementById('wIn');
         if(i.value && db.g >= 10){
             db.g -= 10;
             const newArm = { n: i.value.toUpperCase(), d: Math.floor(Math.random() * 20) + 1 };
             db.w.push(newArm); db.curW = newArm; i.value = ""; save();
-        } else { alert("Falta oro o nombre"); }
+        } else { alert("Oro insuficiente."); }
     }
     function equip(i){ db.curW = db.w[i]; save(); }
     function addM(){ const i=document.getElementById('mI'); if(i.value){db.m.push(i.value); i.value=""; save();}}
@@ -147,46 +147,51 @@
     function addNote(){ const i=document.getElementById('nI'); if(i.value){ db.n.unshift({txt: i.value, date: new Date().toLocaleString()}); i.value=""; save(); }}
     function delN(i){ db.n.splice(i,1); save(); }
 
-    // --- SISTEMA P2P RECONSTRUIDO ---
+    // --- RED PEERJS REFORZADA ---
     let peer, conn;
 
-    function initNet() {
-        // Usamos un servidor STUN público de Google para saltar bloqueos
+    function initPeer() {
+        // Configuramos servidores STUN para saltar firewalls móviles
         peer = new Peer(null, {
-            config: {'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }]},
-            debug: 1
+            config: { 'iceServers': [{ 'urls': 'stun:stun.l.google.com:19302' }, { 'urls': 'stun:stun1.l.google.com:19302' }] },
+            debug: 2
         });
 
-        peer.on('open', id => { document.getElementById('myId').innerText = "ID: " + id; });
+        peer.on('open', id => document.getElementById('myId').innerText = "MI ID: " + id);
         
         peer.on('connection', c => {
             conn = c;
-            setupEvents();
-            addMsg("SISTEMA", "Aliado conectado.");
+            setupMsgEvents();
+            addMsg("SISTEMA", "¡Aliado detectado!");
         });
 
-        peer.on('error', err => { console.error(err); });
+        peer.on('error', err => {
+            if(err.type === 'peer-unavailable') alert("El ID no existe o no está en línea.");
+            console.error("Error de Peer:", err);
+        });
     }
 
     function conectar() {
-        const id = document.getElementById('pId').value.trim();
-        if(id) {
-            conn = peer.connect(id);
-            setupEvents();
+        const targetId = document.getElementById('pId').value.trim();
+        if(targetId) {
+            conn = peer.connect(targetId, { reliable: true });
+            setupMsgEvents();
         }
     }
 
-    function setupEvents() {
+    function setupMsgEvents() {
         conn.on('open', () => {
             document.getElementById('status').innerText = "Estado: VINCULADO";
             document.getElementById('status').style.color = "var(--gold)";
-            // Heartbeat para que el móvil no mate la conexión
-            setInterval(() => { if(conn.open) conn.send('hb'); }, 15000);
+            addMsg("SISTEMA", "Vínculo de alma establecido.");
         });
 
         conn.on('data', data => {
-            if(data !== 'hb') addMsg("ALIADO", data);
+            if(data !== "ping_hb") addMsg("ALIADO", data);
         });
+
+        // Mantener viva la conexión en móviles
+        setInterval(() => { if(conn && conn.open) conn.send("ping_hb"); }, 15000);
     }
 
     function enviar() {
@@ -195,6 +200,8 @@
             conn.send(i.value);
             addMsg("TÚ", i.value);
             i.value = "";
+        } else {
+            alert("No hay conexión activa.");
         }
     }
 
@@ -206,12 +213,12 @@
 
     function copyId() {
         const id = document.getElementById('myId').innerText.split(": ")[1];
-        navigator.clipboard.writeText(id); alert("Copiado");
+        navigator.clipboard.writeText(id); alert("ID Copiado");
     }
 
     document.getElementById('msgIn').onkeydown = e => { if(e.key==='Enter') enviar(); };
 
-    initNet();
+    initPeer();
     render();
 </script>
 </body>
