@@ -3,200 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CITADEL NEXUS</title>
+    <title>Citadel RPG: Estable</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #000; --panel: #111; --gold: #d4af37; --hp: #ff4444; --text: #eee; }
-        * { box-sizing: border-box; }
-        body { background: var(--bg); color: var(--text); font-family: 'Press Start 2P', cursive; margin: 0; font-size: 8px; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
-
+        :root { --bg: #0d0d0d; --panel: #1a1a1a; --gold: #d4af37; --hp: #ff4d4d; }
+        body { background: var(--bg); color: #e0e0e0; font-family: 'Press Start 2P', cursive; margin: 0; font-size: 8px; display: flex; height: 100vh; flex-direction: column; overflow: hidden; }
+        
         /* HEADER & STATS */
-        header { background: var(--panel); padding: 15px; border-bottom: 2px solid var(--gold); text-align: center; }
-        .stats-bar { display: flex; justify-content: space-around; background: #080808; padding: 10px; font-size: 6px; border-bottom: 1px solid #333; }
-        .hp-box { width: 60px; height: 8px; background: #333; border: 1px solid #555; margin-top: 4px; }
-        #hp-fill { height: 100%; background: var(--hp); width: 100%; transition: 0.5s; }
+        .stats { display: flex; justify-content: space-around; background: #000; padding: 10px; border-bottom: 2px solid var(--gold); }
+        .bar-bg { background: #333; height: 8px; width: 60px; border-radius: 4px; overflow: hidden; margin-top: 4px; }
+        .bar-fill { height: 100%; transition: 0.4s; width: 100%; }
 
-        /* NAVIGATION */
-        nav { display: flex; background: var(--panel); }
-        .tab-btn { flex: 1; padding: 15px 5px; border: none; background: none; color: #666; font-family: 'Press Start 2P'; font-size: 6px; cursor: pointer; border-bottom: 2px solid transparent; }
+        /* TABS */
+        .tabs { display: flex; background: #111; }
+        .tab-btn { flex: 1; padding: 15px; cursor: pointer; border: none; background: none; color: #777; font-family: 'Press Start 2P'; font-size: 7px; border-bottom: 2px solid transparent; }
         .tab-btn.active { color: var(--gold); border-bottom: 2px solid var(--gold); background: #1a1a1a; }
 
         /* VIEWS */
         .view { display: none; flex: 1; padding: 20px; overflow-y: auto; }
         .view.active { display: block; }
 
-        /* CARDS & INPUTS */
-        .card { background: #181818; border: 1px solid #333; padding: 15px; margin-bottom: 15px; border-radius: 4px; }
-        input { background: #000; border: 1px solid #444; color: #fff; padding: 12px; width: 100%; font-family: 'Press Start 2P'; font-size: 7px; margin-bottom: 10px; outline: none; }
-        input:focus { border-color: var(--gold); }
-        button { background: var(--gold); color: #000; border: none; padding: 12px; cursor: pointer; font-family: 'Press Start 2P'; font-size: 7px; width: 100%; font-weight: bold; }
-        button:active { transform: scale(0.98); }
+        /* CARDS */
+        .card { background: #222; border: 1px solid #444; padding: 15px; margin-bottom: 15px; border-radius: 4px; }
+        button { background: var(--gold); color: #000; border: none; padding: 12px; cursor: pointer; font-family: 'Press Start 2P'; font-size: 7px; width: 100%; margin-top: 5px; }
+        input { background: #000; border: 1px solid #444; color: #fff; padding: 12px; width: 100%; box-sizing: border-box; font-family: 'Press Start 2P'; font-size: 7px; margin-bottom: 10px; }
 
-        /* SHOP ITEMS */
-        .shop-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #222; }
+        /* CHAT */
+        #chatBox { height: 200px; overflow-y: auto; background: rgba(0,0,0,0.3); border: 1px solid #333; padding: 10px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; }
+        .msg { border-left: 2px solid var(--gold); padding-left: 8px; line-height: 1.4; }
     </style>
 </head>
 <body>
 
-<header>CITADEL SYSTEM v1.0</header>
-
-<div class="stats-bar">
-    <div>VIDA <div class="hp-box"><div id="hp-fill"></div></div></div>
-    <div>ORO: <span id="gold-val" style="color:var(--gold)">0</span></div>
-    <div>EQUIPO: <span id="wpn-val" style="color:var(--gold)">PUÑOS</span></div>
+<div class="stats">
+    <div>HP <div class="bar-bg"><div id="hpFill" class="bar-fill" style="background:var(--hp);"></div></div></div>
+    <div>ORO: <span id="goldVal">0</span></div>
+    <div>EQUIPO: <span id="wpnVal">PUÑOS</span></div>
 </div>
 
-<nav>
-    <button class="tab-btn active" onclick="showTab('misiones')">MISIONES</button>
-    <button class="tab-btn" onclick="showTab('tienda')">TIENDA</button>
-    <button class="tab-btn" onclick="showTab('notas')">NOTAS</button>
-</nav>
-
-<div id="misiones" class="view active">
-    <div class="card">
-        <input type="text" id="m-input" placeholder="¿Cuál es tu misión?">
-        <button onclick="addMision()">FIJAR EN EL TABLÓN</button>
-    </div>
-    <div id="m-list"></div>
+<div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('chat', this)">CHAT</button>
+    <button class="tab-btn" onclick="switchTab('misiones', this)">GESTA</button>
+    <button class="tab-btn" onclick="switchTab('tienda', this)">TIENDA</button>
+    <button class="tab-btn" onclick="switchTab('notas', this)">NOTAS</button>
 </div>
 
-<div id="tienda" class="view">
-    <div class="card">
-        <div class="shop-item">
-            <div>DAGA HIERRO<br><small style="color:var(--gold)">50 Oro</small></div>
-            <button style="width:70px" onclick="buy('Daga Hierro', 50)">BUY</button>
-        </div>
-        <div class="shop-item">
-            <div>ESPADA REAL<br><small style="color:var(--gold)">150 Oro</small></div>
-            <button style="width:70px" onclick="buy('Espada Real', 150)">BUY</button>
-        </div>
-        <div class="shop-item">
-            <div>HACHA ORCA<br><small style="color:var(--gold)">400 Oro</small></div>
-            <button style="width:70px" onclick="buy('Hacha Orca', 400)">BUY</button>
-        </div>
-    </div>
+<div id="view-chat" class="view active">
+    <div id="chatBox"></div>
+    <input type="text" id="msgIn" placeholder="Escribe..." onkeydown="if(event.key==='Enter') send()">
+    <div style="font-size:5px; color:#555; margin-bottom:10px;">TU ID: <span id="myId">...</span></div>
+    <input type="text" id="peerId" placeholder="ID de amigo...">
+    <button onclick="conectar()">VINCULAR ALIADO</button>
 </div>
 
-<div id="notas" class="view">
-    <input type="text" id="n-input" placeholder="Escribe un pensamiento...">
-    <button onclick="addNota()">GUARDAR NOTA</button>
-    <div id="n-list" style="margin-top:20px"></div>
+<div id="view-misiones" class="view">
+    <input type="text" id="mIn" placeholder="Nueva misión (24h)...">
+    <button onclick="addM()">FIJAR GESTA</button>
+    <div id="mList" style="margin-top:20px"></div>
 </div>
 
+<div id="view-tienda" class="view">
+    <div class="card">DAGA HIERRO | 40g <button onclick="buy('Daga Hierro', 40)">COMPRAR</button></div>
+    <div class="card">ESPADA REAL | 150g <button onclick="buy('Espada Real', 150)">COMPRAR</button></div>
+    <div class="card">HACHA ORCA | 400g <button onclick="buy('Hacha Orca', 400)">COMPRAR</button></div>
+</div>
+
+<div id="view-notas" class="view">
+    <input type="text" id="nIn" placeholder="Escribir nota...">
+    <button onclick="addN()">GUARDAR</button>
+    <div id="nList" style="margin-top:20px"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
-    // --- LÓGICA DE DATOS ---
-    let user = JSON.parse(localStorage.getItem('citadel_core')) || {
+    // 1. ESTADO
+    let db = JSON.parse(localStorage.getItem('citadel_v5')) || {
         hp: 100, gold: 0, wpn: "PUÑOS", missions: [], notes: []
     };
 
-    function save() {
-        localStorage.setItem('citadel_core', JSON.stringify(user));
-        refresh();
-    }
-
-    // --- NAVEGACIÓN ---
-    function showTab(id) {
+    // 2. NAVEGACIÓN (Corregida)
+    function switchTab(viewId, btn) {
+        // Ocultar todas las vistas
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        // Desactivar todos los botones
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        event.currentTarget.classList.add('active');
+        
+        // Mostrar la vista actual
+        document.getElementById('view-' + viewId).classList.add('active');
+        btn.classList.add('active');
     }
 
-    // --- FUNCIONES MISIONES ---
-    function addMision() {
-        const inp = document.getElementById('m-input');
-        if (inp.value.trim()) {
-            user.missions.push({
-                text: inp.value,
-                time: Date.now(),
-                done: false,
-                fail: false
-            });
-            inp.value = "";
-            save();
-        }
+    // 3. LÓGICA DE JUEGO
+    function save() {
+        localStorage.setItem('citadel_v5', JSON.stringify(db));
+        render();
     }
 
-    function completeMision(index) {
-        user.missions[index].done = true;
-        user.gold += 50;
-        save();
-    }
+    function render() {
+        document.getElementById('hpFill').style.width = db.hp + "%";
+        document.getElementById('goldVal').innerText = db.gold;
+        document.getElementById('wpnVal').innerText = db.wpn;
 
-    function deleteMision(index) {
-        user.missions.splice(index, 1);
-        save();
-    }
-
-    // --- FUNCIONES TIENDA & NOTAS ---
-    function buy(name, price) {
-        if (user.gold >= price) {
-            user.gold -= price;
-            user.wpn = name;
-            save();
-            alert("¡Equipado: " + name + "!");
-        } else {
-            alert("Oro insuficiente...");
-        }
-    }
-
-    function addNota() {
-        const inp = document.getElementById('n-input');
-        if (inp.value.trim()) {
-            user.notes.push(inp.value);
-            inp.value = "";
-            save();
-        }
-    }
-
-    function deleteNota(index) {
-        user.notes.splice(index, 1);
-        save();
-    }
-
-    // --- REFRESCAR PANTALLA ---
-    function refresh() {
-        document.getElementById('hp-fill').style.width = user.hp + "%";
-        document.getElementById('gold-val').innerText = user.gold;
-        document.getElementById('wpn-val').innerText = user.wpn;
-
-        // Lista misiones
-        const ml = document.getElementById('m-list');
-        ml.innerHTML = "";
-        user.missions.forEach((m, i) => {
-            const timePassed = Date.now() - m.time;
-            const oneDay = 86400000;
-            
-            // Si pasó un día y no se hizo
-            if (!m.done && !m.fail && timePassed > oneDay) {
-                m.fail = true;
-                user.hp = Math.max(0, user.hp - 20);
-                localStorage.setItem('citadel_core', JSON.stringify(user));
+        // Misiones
+        const ml = document.getElementById('mList'); ml.innerHTML = "";
+        db.missions.forEach((m, i) => {
+            const passed = Date.now() - m.start;
+            if(!m.done && !m.fail && passed > 86400000) {
+                db.hp = Math.max(0, db.hp - 20); m.fail = true; 
             }
-
-            ml.innerHTML += `
-                <div class="card" style="border-left: 3px solid ${m.done ? '#0f0' : (m.fail ? '#f00' : '#555')}">
-                    <div style="font-size:7px; margin-bottom:8px">${m.text}</div>
-                    ${(!m.done && !m.fail) ? `<button onclick="completeMision(${i})">LOGRAR (+50g)</button>` : ''}
-                    <div onclick="deleteMision(${i})" style="color:#444; margin-top:10px; font-size:5px; cursor:pointer">[ELIMINAR]</div>
-                </div>`;
+            ml.innerHTML += `<div class="card" style="border-left:3px solid ${m.done?'#0f0':(m.fail?'#f00':'#d4af37')}">
+                <p>${m.text}</p>
+                ${(!m.done && !m.fail) ? `<button onclick="doneM(${i})">LOGRAR (+30g)</button>` : ''}
+                <small onclick="delM(${i})" style="color:#555; cursor:pointer; font-size:5px;">[BORRAR]</small>
+            </div>`;
         });
 
-        // Lista notas
-        const nl = document.getElementById('n-list');
-        nl.innerHTML = "";
-        user.notes.forEach((n, i) => {
-            nl.innerHTML += `
-                <div class="card">
-                    ${n}
-                    <div onclick="deleteNota(${i})" style="color:red; text-align:right; margin-top:10px; font-size:5px; cursor:pointer">[BORRAR]</div>
-                </div>`;
+        // Notas
+        const nl = document.getElementById('nList'); nl.innerHTML = "";
+        db.notes.forEach((n, i) => {
+            nl.innerHTML += `<div class="card">${n} <small onclick="delN(${i})" style="color:red; cursor:pointer; float:right">X</small></div>`;
         });
     }
 
-    // Iniciar
-    refresh();
-</script>
+    function addM() { const i = document.getElementById('mIn'); if(i.value){ db.missions.push({text:i.value, start:Date.now(), done:false, fail:false}); i.value=""; save(); } }
+    function doneM(index) { db.missions[index].done = true; db.gold += 30; save(); }
+    function delM(index) { db.missions.splice(index, 1); save(); }
+    function addN() { const i = document.getElementById('nIn'); if(i.value){ db.notes.push(i.value); i.value=""; save(); } }
+    function delN(index) { db.notes.splice(index, 1); save(); }
+    function buy(n, p) { if(db.gold >= p){ db.gold -= p; db.wpn = n; save(); } else { alert("Oro insuficiente"); } }
 
+    // 4. CHAT (Separado para no romper nada)
+    let peer, conn;
+    try {
+        peer = new Peer();
+        peer.on('open', id => document.getElementById('myId').innerText = id);
+        peer.on('connection', c => { conn = c; setupChat(); });
+        peer.on('error', () => console.log("Peer offline"));
+    } catch(e) { console.log("Error de red"); }
+
+    function conectar() { 
+        const id = document.getElementById('peerId').value;
+        if(id) { conn = peer.connect(id); setupChat(); }
+    }
+
+    function setupChat() {
+        conn.on('open', () => addMsg("SISTEMA", "Aliado vinculado."));
+        conn.on('data', d => addMsg("ALIADO", d));
+    }
+
+    function send() {
+        const i = document.getElementById('msgIn');
+        if(conn && i.value) { conn.send(i.value); addMsg("TÚ", i.value); i.value = ""; }
+    }
+
+    function addMsg(u, m) {
+        const b = document.getElementById('chatBox');
+        b.innerHTML += `<div class="msg"><b>${u}:</b> ${m}</div>`;
+        b.scrollTop = b.scrollHeight;
+    }
+
+    render();
+</script>
 </body>
 </html>
